@@ -98,9 +98,9 @@ export const type = {
   },
   numericDisplay: {
     fontFamily: fonts.mono.medium,
-    fontSize: 56,
-    lineHeight: 56,
-    letterSpacing: -1.1,
+    fontSize: 44,
+    lineHeight: 52,
+    letterSpacing: -0.9,
   },
   numericHeadline: {
     fontFamily: fonts.mono.medium,

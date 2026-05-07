@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   valueRow: {
     flexDirection: "row",
     alignItems: "baseline",
-    marginTop: theme.spacing.sm,
+    marginTop: theme.spacing.md,
   },
   valueDisplay: {
     ...theme.type.numericDisplay,
