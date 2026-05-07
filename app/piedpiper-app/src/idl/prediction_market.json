@@ -214,6 +214,83 @@
       ]
     },
     {
+      "name": "donate_to_pool",
+      "discriminator": [
+        219,
+        179,
+        202,
+        183,
+        26,
+        49,
+        206,
+        250
+      ],
+      "accounts": [
+        {
+          "name": "ubi_pool",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  98,
+                  105,
+                  95,
+                  112,
+                  111,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "donor_record",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  111,
+                  110,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "donor"
+              }
+            ]
+          }
+        },
+        {
+          "name": "donor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "memo",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "initialize_ubi_pool",
       "discriminator": [
         130,
@@ -495,6 +572,19 @@
   ],
   "accounts": [
     {
+      "name": "DonorRecord",
+      "discriminator": [
+        204,
+        101,
+        15,
+        37,
+        82,
+        141,
+        165,
+        40
+      ]
+    },
+    {
       "name": "Market",
       "discriminator": [
         219,
@@ -642,9 +732,50 @@
       "code": 6018,
       "name": "NoUbiAvailable",
       "msg": "No UBI available this epoch"
+    },
+    {
+      "code": 6019,
+      "name": "MemoTooLong",
+      "msg": "Memo too long (max 128 chars)"
     }
   ],
   "types": [
+    {
+      "name": "DonorRecord",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "donor",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_donated",
+            "type": "u64"
+          },
+          {
+            "name": "last_amount",
+            "type": "u64"
+          },
+          {
+            "name": "first_donated_at",
+            "type": "i64"
+          },
+          {
+            "name": "last_donated_at",
+            "type": "i64"
+          },
+          {
+            "name": "last_memo",
+            "type": "string"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
     {
       "name": "Market",
       "type": {

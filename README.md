@@ -14,7 +14,7 @@ The app cannot run without a Seeker. Personhood is gated on on-chain ownership o
 | ![Verify screen](media/01_verify.png) | ![Markets screen](media/02_markets.png) | ![Settled win](media/03_settled.png) |
 | **Step 1** — SGT detected, biometric-signed `register_verification` writes a `VerificationRecord` PDA. | **Step 2** — Browse open markets. Geo-fenced market correctly greys out when out of range. | **Step 3** — Bet placed (0.098 SOL on YES) → market settled YES → trophy chip shows the win, auto-credited at next epoch. |
 
-📹 [Slideshow demo (15 s, mp4)](media/demo.mp4) · 📦 Signed APK v0.1.0 (attach to a GitHub Release; not committed — `*.apk` is gitignored)
+📹 [Slideshow demo (15 s, mp4)](media/demo.mp4) · 📦 Signed APK v0.1.0 (attach to a GitHub Release; not committed — `*.apk` is gitignored) · 📚 [`@piedpiper/sdk`](packages/sdk/) — donate to UBI from any Solana app
 
 ## End-to-end on devnet (real Seeker, this submission)
 
@@ -24,6 +24,7 @@ The app cannot run without a Seeker. Personhood is gated on on-chain ownership o
 | `place_bet(YES, 0.1 SOL)` | [`2ySz…DwYW`](https://explorer.solana.com/tx/2ySzJddoDymahfM9UK9zMrfZJmS3nYFbAdPm8kLgTkvMXkX6Xh6wZik1B3wJ8UUtT5d3EBTovhDN9rbsp4eaDwYW?cluster=devnet) | Market `DntC…zhEb` YES vault holds 0.098 SOL; 0.002 SOL fee accrued to UbiPool |
 | `claim_ubi` | [`64W5…NBdv`](https://explorer.solana.com/tx/64W5ZZkSpRMZwxfDVYH4xBPn6dj5cicT9VELGHwYpofSAZxijciGZm537pL4SPeRqmJWLVPrRh5njkPofUjqNBdv?cluster=devnet) | 0.002 SOL distributed to the (sole) verified Seeker for epoch `5927174` |
 | `resolve_market(YES)` | [`2gh3…tKFq`](https://explorer.solana.com/tx/2gh3NNqdWE2uxYrzV2HuxqdjnQ1bDX3UkE8QaBJBG8dbmDAYxWcFmieuZvXoxvpywZcSKDkAPovCty1h3R7xtKFq?cluster=devnet) | Admin resolved, status flipped to settled, outcome `YES` |
+| `donate_to_pool(0.05 SOL, "Acme Corp Q2 2026 welfare contribution")` (via `@piedpiper/sdk`) | [`4WrK…DFzg`](https://explorer.solana.com/tx/4WrKVr1LAzvrCDwkjsXkYpdQcByFWAkptH6s6n7twSv4X37tpafE6xUNwNe8rvU9aqDocsMGm3AGpdDuWS3bDFzg?cluster=devnet) | DonorRecord PDA `9qnV…7oPi` created; 0.05 SOL added to UbiPool's distributable counter |
 
 ## Why Seeker
 
@@ -102,14 +103,15 @@ cd app/piedpiper-app/android && ./gradlew assembleRelease
 
 - **Devnet only.** Mock SGT mint replaces the real `GT22s89nU4iWFkNXj1Bw6uYhJJWDRPpShHt4Bk8f99Te` group on mainnet. Production would do a Token-2022 group-membership check via `unpackMint` + `getTokenGroupMemberState`, not a single hardcoded mint.
 - **Admin-only resolution.** Switchboard On-Demand / Pyth are designed-for via the `resolution_type` enum but not wired up.
-- **Sybil resistance is partial.** SGT-per-device + 1-claim-per-epoch is the current defense; future work: SAS attestation, ML Kit liveness, GPS H3-cell rate-limiting.
+- **Sybil resistance is partial.** SGT-per-device + 1-claim-per-epoch is the current defense; v0.2 adds **camera + ML Kit on-device face liveness** (eye-blink challenge) and a `face_hash: [u8; 32]` field on `VerificationRecord` so a single wallet can't re-verify on a different face. The full plan and the integration cost (~3–4 h, mostly the Expo native module rebuild) is documented in code comments above `register_verification`. SAS attestation + GPS H3-cell rate-limiting are further v0.3 items.
 - **Prediction-market + gambling-fee-funded UBI is a regulatory grey zone.** This is research; not for use in regulated jurisdictions.
 
 ## What was novel here
 
 - **Hardware-attested personhood as a hard gate** — no Seeker → no app. Every signature is a biometric touch on a TEE-isolated key.
 - **Fee → UBI loop** — every prediction-market trade compounds a public-goods pool, distributed only to verified Seeker holders via a daily epoch claim with on-chain double-claim rejection.
-- **Hand-rolled Borsh codec** to bypass `@coral-xyz/anchor`'s `buffer-layout`-based decoder, which crashes on Hermes (`Buffer.prototype.readUIntLE is not a function`). Account discriminators + slice-based field reads in [`app/piedpiper-app/src/utils/codec.ts`](app/piedpiper-app/src/utils/codec.ts). The instruction encoder is 50 lines of `Uint8Array` concatenation against the IDL discriminators — drop-in replacement for `program.methods.x().instruction()`.
+- **`@piedpiper/sdk` — welfare companies as a primitive.** A two-line drop-in for any Solana app, payroll script, or treasury bot to donate to the same UBI pool with an on-chain memo + per-donor `DonorRecord` PDA for tax / leaderboard / reputation purposes. Confirmed end-to-end with a live "Acme Corp Q2 2026 welfare contribution" tx on devnet. Companies become *welfare contributors* without needing to integrate an oracle, manage epoch math, or run their own UBI program — they just call `client.donateInstruction({ donor, amountLamports, memo })`.
+- **Hand-rolled Borsh codec** to bypass `@coral-xyz/anchor`'s `buffer-layout`-based decoder, which crashes on Hermes (`Buffer.prototype.readUIntLE is not a function`). Account discriminators + slice-based field reads in [`app/piedpiper-app/src/utils/codec.ts`](app/piedpiper-app/src/utils/codec.ts). The instruction encoder is 50 lines of `Uint8Array` concatenation against the IDL discriminators — drop-in replacement for `program.methods.x().instruction()`. The same approach powers the SDK so it runs zero-deps in browser, Node, and React Native.
 - **Geo-fenced markets** with on-device GPS check (`expo-location`) gating the bet button — the rain market only takes bets when you're physically near the venue.
 
 ## Submission artifacts

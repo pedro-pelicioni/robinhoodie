@@ -177,6 +177,49 @@ pub mod prediction_market {
         Ok(())
     }
 
+    pub fn donate_to_pool(
+        ctx: Context<DonateToPool>,
+        amount: u64,
+        memo: String,
+    ) -> Result<()> {
+        require!(amount > 0, ErrorCode::ZeroAmount);
+        require!(memo.len() <= 128, ErrorCode::MemoTooLong);
+
+        anchor_lang::system_program::transfer(
+            CpiContext::new(
+                ctx.accounts.system_program.to_account_info(),
+                anchor_lang::system_program::Transfer {
+                    from: ctx.accounts.donor.to_account_info(),
+                    to: ctx.accounts.ubi_pool.to_account_info(),
+                },
+            ),
+            amount,
+        )?;
+
+        let pool = &mut ctx.accounts.ubi_pool;
+        pool.total_lamports = pool
+            .total_lamports
+            .checked_add(amount)
+            .ok_or(ErrorCode::Overflow)?;
+
+        let now = Clock::get()?.unix_timestamp;
+        let record = &mut ctx.accounts.donor_record;
+        let was_new = record.donor == Pubkey::default();
+        record.donor = ctx.accounts.donor.key();
+        record.last_memo = memo;
+        record.last_amount = amount;
+        record.last_donated_at = now;
+        record.total_donated = record
+            .total_donated
+            .checked_add(amount)
+            .ok_or(ErrorCode::Overflow)?;
+        if was_new {
+            record.bump = ctx.bumps.donor_record;
+            record.first_donated_at = now;
+        }
+        Ok(())
+    }
+
     pub fn claim_ubi(ctx: Context<ClaimUbi>) -> Result<()> {
         let user_key = ctx.accounts.user.key();
         let now = Clock::get()?.unix_timestamp;
@@ -328,6 +371,23 @@ pub struct ClaimWinnings<'info> {
 }
 
 #[derive(Accounts)]
+pub struct DonateToPool<'info> {
+    #[account(mut, seeds = [b"ubi_pool"], bump = ubi_pool.bump)]
+    pub ubi_pool: Account<'info, UbiPool>,
+    #[account(
+        init_if_needed,
+        payer = donor,
+        space = 8 + DonorRecord::INIT_SPACE,
+        seeds = [b"donor", donor.key().as_ref()],
+        bump,
+    )]
+    pub donor_record: Account<'info, DonorRecord>,
+    #[account(mut)]
+    pub donor: Signer<'info>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
 pub struct ClaimUbi<'info> {
     #[account(mut, seeds = [b"ubi_pool"], bump = ubi_pool.bump)]
     pub ubi_pool: Account<'info, UbiPool>,
@@ -392,6 +452,19 @@ pub struct Position {
 
 #[account]
 #[derive(InitSpace)]
+pub struct DonorRecord {
+    pub donor: Pubkey,
+    pub total_donated: u64,
+    pub last_amount: u64,
+    pub first_donated_at: i64,
+    pub last_donated_at: i64,
+    #[max_len(128)]
+    pub last_memo: String,
+    pub bump: u8,
+}
+
+#[account]
+#[derive(InitSpace)]
 pub struct VerificationRecord {
     pub authority: Pubkey,
     pub sgt_mint: Pubkey,
@@ -444,4 +517,6 @@ pub enum ErrorCode {
     AlreadyClaimedEpoch,
     #[msg("No UBI available this epoch")]
     NoUbiAvailable,
+    #[msg("Memo too long (max 128 chars)")]
+    MemoTooLong,
 }
