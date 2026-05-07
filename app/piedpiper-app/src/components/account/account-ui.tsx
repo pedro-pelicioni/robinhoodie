@@ -30,7 +30,7 @@ export function AccountBalance({ address }: { address: PublicKey }) {
       <View style={styles.accountBalance}>
         <Text variant="titleMedium">Current Balance</Text>
         <Text variant="displayLarge">
-          {query.data ? lamportsToSol(query.data) : "..."} SOL
+          {query.data ? lamportsToSol(query.data) : "..."} SKR
         </Text>
       </View>
     </>
@@ -113,7 +113,7 @@ export function AirdropRequestModal({
     >
       <View style={{ padding: 4 }}>
         <Text>
-          Request an airdrop of 1 SOL to your connected wallet account.
+          Request an airdrop of 1 SKR to your connected wallet account.
         </Text>
       </View>
     </AppModal>
@@ -134,7 +134,7 @@ export function TransferSolModal({
   const [amount, setAmount] = useState("");
   return (
     <AppModal
-      title="Send SOL"
+      title="Send SKR"
       hide={hide}
       show={show}
       submit={() => {
@@ -150,7 +150,7 @@ export function TransferSolModal({
     >
       <View style={{ padding: 20 }}>
         <TextInput
-          label="Amount (SOL)"
+          label="Amount (SKR)"
           value={amount}
           onChangeText={setAmount}
           keyboardType="numeric"

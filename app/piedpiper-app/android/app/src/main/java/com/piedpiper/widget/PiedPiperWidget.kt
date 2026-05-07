@@ -60,7 +60,7 @@ class PiedPiperWidget : GlanceAppWidget() {
             )
             Spacer(modifier = GlanceModifier.height(6.dp))
             Text(
-                text = formatSol(snapshot.totalSol) + " SOL",
+                text = formatSol(snapshot.totalSol) + " SKR",
                 style = TextStyle(
                     color = ColorProvider(Color(0xFFC8A8FF)),
                     fontSize = 28.sp,

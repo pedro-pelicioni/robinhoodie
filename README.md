@@ -9,6 +9,8 @@ The app cannot run without a Seeker. Personhood is gated on on-chain ownership o
 
 > *The first prediction market that cannot exist without a Seeker — hardware-attested personhood unlocks fee-funded UBI.*
 
+> **A note on the currency labels.** The app + widget present every amount as **SKR** (Solana Mobile's native token, which is what the prediction-market product would actually denominate in for ecosystem alignment). On devnet today the value flowing under the hood is still SOL — every "0.1 SKR" the user sees corresponds to 0.1 SOL on-chain. The swap to a real SKR SPL transfer (`@solana/spl-token`'s `transfer` instead of `system_program::transfer`) is a single-instruction program change documented in the v0.2 plan; the UI is already SKR-clean.
+
 | | | |
 | :---: | :---: | :---: |
 | ![Verify screen](media/01_verify.png) | ![Markets screen](media/02_markets.png) | ![Settled win](media/03_settled.png) |

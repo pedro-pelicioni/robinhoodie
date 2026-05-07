@@ -150,7 +150,7 @@ export default function BlankScreen() {
         Math.floor(parseFloat(raw) * LAMPORTS_PER_SOL),
       );
       if (amountLamports <= 0n) {
-        alertAndLog("Invalid amount", "Enter a positive SOL amount");
+        alertAndLog("Invalid amount", "Enter a positive SKR amount");
         return;
       }
       setLoading(true);
@@ -276,14 +276,14 @@ export default function BlankScreen() {
                   )}
                 </View>
                 <Text variant="bodySmall" style={{ marginTop: 8 }}>
-                  YES pool: {lamportsToSol(m.account.yesLamports).toFixed(4)} SOL
-                  · NO pool: {lamportsToSol(m.account.noLamports).toFixed(4)} SOL
+                  YES pool: {lamportsToSol(m.account.yesLamports).toFixed(4)} SKR
+                  · NO pool: {lamportsToSol(m.account.noLamports).toFixed(4)} SKR
                 </Text>
                 {open && (
                   <>
                     <TextInput
                       style={styles.input}
-                      placeholder="Amount in SOL (e.g. 0.1)"
+                      placeholder="Amount in SKR (e.g. 0.1)"
                       placeholderTextColor="#888"
                       keyboardType="decimal-pad"
                       value={betAmounts[id] ?? ""}
@@ -313,7 +313,7 @@ export default function BlankScreen() {
                 )}
                 {isWinner && !m.position?.claimed && (
                   <Chip icon="trophy" style={[styles.chipOk, { marginTop: 12 }]}>
-                    You won {projectedPayout.toFixed(4)} SOL — auto-credited at next epoch
+                    You won {projectedPayout.toFixed(4)} SKR — auto-credited at next epoch
                   </Chip>
                 )}
                 {m.position?.claimed && (
