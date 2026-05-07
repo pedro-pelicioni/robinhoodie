@@ -94,6 +94,16 @@ android {
         versionCode 1
         versionName "1.0.0"
     }
+
+    // Required for the Glance home-screen widget (Compose @Composable in Kotlin).
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        // Pinned to match Kotlin 1.9.25 (per the kotlin-compiler-embeddable seen
+        // during the first dev-client build).
+        kotlinCompilerExtensionVersion '1.5.15'
+    }
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -173,4 +183,10 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // Pied Piper UBI home-screen widget (Glance / Compose) + OkHttp for the
+    // widget's direct devnet RPC fetch (no RN bridge involvement).
+    implementation("androidx.glance:glance-appwidget:1.1.1")
+    implementation("androidx.glance:glance-material3:1.1.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }
