@@ -1,8 +1,166 @@
-<!-- SEED: re-run /impeccable document once components are built to capture real tokens, sidecar, and component snippets. -->
-
 ---
 name: RobinHoodie
 description: A Seeker-hardware-native prediction market whose 2 % fees stream as UBI to verified humans.
+colors:
+  signal-amber: "#E27726"
+  signal-amber-deep: "#B85F1B"
+  signal-amber-quiet: "#7A4A22"
+  ash-coal: "#15110D"
+  ash-graphite: "#1F1A14"
+  ash-charcoal: "#2A2520"
+  ash-line: "#3A332C"
+  ash-mist: "#85786A"
+  ash-fog: "#B5A89A"
+  ash-bone: "#F2EDE5"
+  state-kelp: "#5B8A5E"
+  state-kelp-deep: "#3F6643"
+  state-kelp-quiet: "#2C3D2E"
+  state-terra: "#A85C3F"
+  state-terra-deep: "#7C422C"
+  state-terra-quiet: "#4A2C20"
+  state-error: "#C04A2E"
+typography:
+  display:
+    fontFamily: "Inter_600SemiBold, Inter, system-ui, sans-serif"
+    fontSize: "56px"
+    fontWeight: 600
+    lineHeight: 1.0
+    letterSpacing: "-0.02em"
+  headline:
+    fontFamily: "Inter_600SemiBold, Inter, system-ui, sans-serif"
+    fontSize: "36px"
+    fontWeight: 600
+    lineHeight: 1.05
+    letterSpacing: "-0.015em"
+  title:
+    fontFamily: "Inter_600SemiBold, Inter, system-ui, sans-serif"
+    fontSize: "22px"
+    fontWeight: 600
+    lineHeight: 1.2
+    letterSpacing: "-0.005em"
+  body:
+    fontFamily: "Inter_400Regular, Inter, system-ui, sans-serif"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.5
+  bodyMedium:
+    fontFamily: "Inter_500Medium, Inter, system-ui, sans-serif"
+    fontSize: "15px"
+    fontWeight: 500
+    lineHeight: 1.5
+  label:
+    fontFamily: "Inter_500Medium, Inter, system-ui, sans-serif"
+    fontSize: "12px"
+    fontWeight: 500
+    lineHeight: 1.2
+    letterSpacing: "0.06em"
+  numericDisplay:
+    fontFamily: "JetBrainsMono_500Medium, JetBrainsMono, ui-monospace"
+    fontSize: "56px"
+    fontWeight: 500
+    lineHeight: 1.0
+    letterSpacing: "-0.02em"
+  numericHeadline:
+    fontFamily: "JetBrainsMono_500Medium, JetBrainsMono, ui-monospace"
+    fontSize: "36px"
+    fontWeight: 500
+    lineHeight: 1.1
+  numericBody:
+    fontFamily: "JetBrainsMono_400Regular, JetBrainsMono, ui-monospace"
+    fontSize: "15px"
+    fontWeight: 400
+    lineHeight: 1.5
+  numericCaption:
+    fontFamily: "JetBrainsMono_400Regular, JetBrainsMono, ui-monospace"
+    fontSize: "12px"
+    fontWeight: 400
+    lineHeight: 1.3
+rounded:
+  none: "0px"
+  sm: "8px"
+  md: "20px"
+  lg: "32px"
+spacing:
+  xs: "4px"
+  sm: "8px"
+  md: "12px"
+  lg: "16px"
+  xl: "24px"
+  xxl: "32px"
+  xxxl: "48px"
+  hero: "64px"
+components:
+  primary-button:
+    backgroundColor: "{colors.signal-amber}"
+    textColor: "{colors.ash-coal}"
+    rounded: "{rounded.lg}"
+    height: "56px"
+    padding: "0 24px"
+    typography: "{typography.bodyMedium}"
+  primary-button-pressed:
+    backgroundColor: "{colors.signal-amber-deep}"
+    textColor: "{colors.ash-coal}"
+  primary-button-disabled:
+    backgroundColor: "{colors.signal-amber-quiet}"
+    textColor: "{colors.ash-mist}"
+  ghost-button:
+    backgroundColor: "transparent"
+    textColor: "{colors.ash-bone}"
+    rounded: "{rounded.lg}"
+    height: "48px"
+    padding: "0 16px"
+    typography: "{typography.bodyMedium}"
+  status-surface:
+    backgroundColor: "{colors.ash-charcoal}"
+    textColor: "{colors.ash-bone}"
+    rounded: "{rounded.md}"
+    padding: "16px"
+  status-surface-amber:
+    backgroundColor: "{colors.signal-amber}"
+    textColor: "{colors.ash-coal}"
+    rounded: "{rounded.md}"
+    padding: "16px"
+  status-surface-kelp:
+    backgroundColor: "{colors.state-kelp-quiet}"
+    textColor: "{colors.ash-bone}"
+    rounded: "{rounded.md}"
+    padding: "16px"
+  status-surface-terra:
+    backgroundColor: "{colors.state-terra-quiet}"
+    textColor: "{colors.ash-bone}"
+    rounded: "{rounded.md}"
+    padding: "16px"
+  bet-yes:
+    backgroundColor: "{colors.state-kelp}"
+    textColor: "{colors.ash-coal}"
+    rounded: "{rounded.md}"
+    height: "96px"
+  bet-no:
+    backgroundColor: "{colors.state-terra}"
+    textColor: "{colors.ash-coal}"
+    rounded: "{rounded.md}"
+    height: "96px"
+  amount-chip:
+    backgroundColor: "{colors.ash-charcoal}"
+    textColor: "{colors.ash-bone}"
+    rounded: "{rounded.sm}"
+    padding: "8px 12px"
+  amount-chip-selected:
+    backgroundColor: "{colors.signal-amber}"
+    textColor: "{colors.ash-coal}"
+    rounded: "{rounded.sm}"
+  hash-display:
+    backgroundColor: "transparent"
+    textColor: "{colors.ash-fog}"
+    typography: "{typography.numericBody}"
+  hero-value-block:
+    backgroundColor: "transparent"
+    textColor: "{colors.signal-amber}"
+    typography: "{typography.numericDisplay}"
+  top-app-bar:
+    backgroundColor: "{colors.ash-coal}"
+    textColor: "{colors.ash-bone}"
+    height: "56px"
 ---
 
 # Design System: RobinHoodie
@@ -21,7 +179,7 @@ This system explicitly rejects: stock Material Design 3 surfaces and react-nativ
 
 - Dark-first. Amber on near-black. Light theme is accessibility, not the canonical surface.
 - Committed color strategy: one signal hue carries every meaningful screen.
-- Tabular mono numerics. SOL amounts, hashes, and percentages never jitter.
+- Tabular mono numerics. SKR amounts, hashes, and percentages never jitter.
 - Tonal layering instead of shadows. Depth comes from charcoal-vs-graphite-vs-coal lifts.
 - No card grids. Each screen states one thing loudly, supports it with a small number of decisive secondaries.
 - Hardware (fingerprint, SGT, Seed Vault) is first-class typography and surface, never relegated to chips.
@@ -32,9 +190,9 @@ The palette has two moods: signal (amber, exclusively for value and primary acti
 
 ### Primary
 
-- **Signal Amber** (`[anchor: oklch ~72 % 0.18 65, hex to be resolved during implementation]`): the project's only saturated color. Used for the primary CTA, the verified-personhood state, the live pool balance, the "your bet won" trophy chip, the biometric pulse halo. **Reserved for value.** Never decoration, never section dividers, never icon fills outside a value context.
-- **Signal Amber Deep** (`[~58 % 0.16 60]`): pressed / active state for primary surfaces; a 1-step tonal compression of the primary.
-- **Signal Amber Quiet** (`[~78 % 0.10 65]`): disabled / unreachable amber; chroma drops, lightness lifts, so the value reads as not-yet-available instead of muted.
+- **Signal Amber** (`#E27726`, oklch ≈ 72 % 0.18 60): the project's only saturated color. Used for the primary CTA, the verified-personhood state, the live pool balance, the "your bet won" trophy chip, the biometric pulse halo. **Reserved for value.** Never decoration, never section dividers, never icon fills outside a value context.
+- **Signal Amber Deep** (`#B85F1B`): pressed / active state for primary surfaces; a 1-step tonal compression of the primary.
+- **Signal Amber Quiet** (`#7A4A22`): disabled / unreachable amber; chroma drops and lightness drops together so the value reads as not-yet-available rather than as a faint accent on the surface.
 
 ### Secondary
 
@@ -46,19 +204,19 @@ Omitted by design. A tertiary accent would compete with Signal Amber and dilute 
 
 ### Neutral (Ash family, tinted toward amber at chroma ≈ 0.005 to 0.008)
 
-- **Ash Coal** (`[~14 % 0.005 65]`): the deepest layer. Modal scrim, the surface behind a hero block, status-bar background.
-- **Ash Graphite** (`[~18 % 0.008 65]`): canonical screen background. The default ground.
-- **Ash Charcoal** (`[~24 % 0.008 65]`): tonally-lifted surface. Where a card would be, this layer goes one step warmer instead.
-- **Ash Line** (`[~30 % 0.008 65]`): subtle divider and border. Always 1 dp; never thicker.
-- **Ash Mist** (`[~52 % 0.005 65]`): tertiary / disabled text. Caption-level information.
-- **Ash Fog** (`[~72 % 0.008 65]`): secondary text. Subtitles, supporting copy.
-- **Ash Bone** (`[~96 % 0.005 65]`): primary text on dark. The dominant text color. Never `#fff`.
+- **Ash Coal** (`#15110D`): the deepest layer. Modal scrim, the surface behind a hero block, status-bar and top-app-bar background.
+- **Ash Graphite** (`#1F1A14`): canonical screen background. The default ground.
+- **Ash Charcoal** (`#2A2520`): tonally-lifted surface. Where a card would be, this layer goes one step warmer instead.
+- **Ash Line** (`#3A332C`): subtle divider and border. Always 1 dp; never thicker.
+- **Ash Mist** (`#85786A`): tertiary / disabled text. Caption-level information.
+- **Ash Fog** (`#B5A89A`): secondary text. Subtitles, supporting copy.
+- **Ash Bone** (`#F2EDE5`): primary text on dark. The dominant text color. Never `#fff`.
 
 ### State (semantic only, never decoration)
 
-- **State Kelp** (`[~70 % 0.16 155]`): YES bets, settled-yes outcome, success confirmations. A moss-green that is deliberately not Polymarket-green and not Cash-App-green.
-- **State Terra** (`[~62 % 0.18 25]`): NO bets, settled-no outcome, declined biometric. A rust/terracotta that is deliberately not Robinhood-red.
-- **State Error** (`[~60 % 0.20 25]`): genuine errors only (transaction failed, network unreachable). Slightly hotter than Terra so the two read as distinct.
+- **State Kelp** (`#5B8A5E`, deep `#3F6643`, quiet `#2C3D2E`): YES bets, settled-yes outcome, success confirmations. A moss-green that is deliberately not Polymarket-green and not Cash-App-green.
+- **State Terra** (`#A85C3F`, deep `#7C422C`, quiet `#4A2C20`): NO bets, settled-no outcome, declined biometric. A rust/terracotta that is deliberately not Robinhood-red.
+- **State Error** (`#C04A2E`): genuine errors only (transaction failed, network unreachable). Slightly hotter than Terra so the two read as distinct.
 
 ### Light theme (a11y companion, not the canonical surface)
 
@@ -74,9 +232,9 @@ A near-symmetric inversion: Ash Bone becomes background, Ash Graphite becomes te
 
 ## 3. Typography
 
-**Display / Body / Label Font:** a single technical sans (variable-weight; e.g. Inter, Geist, Söhne) `[exact family resolved during implementation]`. One family carries headings, buttons, labels, and body across the app.
+**Display / Body / Label Font:** **Inter** (variable, 400 / 500 / 600), bundled via `@expo-google-fonts/inter`. One family carries headings, buttons, labels, and body across the app. System fallback stack: `Inter, system-ui, sans-serif`.
 
-**Numeric / Hash Font:** a tabular monospaced family (e.g. JetBrains Mono, Geist Mono, IBM Plex Mono) `[exact family resolved during implementation]`. Used for SOL amounts, percentages, epoch counters, transaction hashes, addresses.
+**Numeric / Hash Font:** **JetBrains Mono** (400 / 500), bundled via `@expo-google-fonts/jetbrains-mono`. Used for SKR amounts, percentages, epoch counters, transaction hashes, addresses. Fallback: `JetBrainsMono, ui-monospace`.
 
 **Character:** the sans is technical, restrained, slightly compressed in the heavier weights. The mono is mature and round-ish, not stencil-sharp; it must coexist with the sans without screaming "code editor." Together they read as money-app meets settlement-receipt: declarative, factual, dry.
 
@@ -88,15 +246,15 @@ A near-symmetric inversion: Ash Bone becomes background, Ash Graphite becomes te
 - **Body** (regular, ~15 dp, line-height 1.5): supporting paragraphs, descriptions. Cap prose at 65 to 75 ch where prose appears.
 - **Label** (medium, ~12 dp, letter-spacing 0.06 em, uppercase): eyebrow labels above values, button text, status pills. Used sparingly.
 - **Numeric Display** (mono medium, tabular, ~56 dp): pool balance, won-bet amount, epoch counter. Tabular figures (`tnum` / fixed-pitch) are non-negotiable. The number must not jitter.
-- **Numeric Body** (mono regular, tabular, ~15 dp): SOL amounts inline, tx hashes, addresses, timestamps.
+- **Numeric Body** (mono regular, tabular, ~15 dp): SKR amounts inline, tx hashes, addresses, timestamps.
 
 ### Named Rules
 
-**The Tabular Rule.** Every digit that represents a value uses the mono family with tabular figures. SOL amounts, percentages, epoch numbers, lamport counts, slot heights, market IDs. A jittering counter is a craft failure and an accessibility failure.
+**The Tabular Rule.** Every digit that represents a value uses the mono family with tabular figures. SKR amounts, percentages, epoch numbers, lamport counts, slot heights, market IDs. A jittering counter is a craft failure and an accessibility failure.
 
 **The One Voice Rule.** One sans family across the whole app. No display serif, no editorial pairing, no accent typeface. Hierarchy is built from weight (regular vs semibold) and scale (1.4 ratio between steps), never from a second voice.
 
-**The Sans-For-Words Rule.** Words live in the sans. Numbers live in the mono. A hash address (mostly hex digits) lives in the mono. A button label ("Place Bet") lives in the sans. When the two meet inline ("0.098 SOL on YES"), the SOL amount is mono and the rest is sans.
+**The Sans-For-Words Rule.** Words live in the sans. Numbers live in the mono. A hash address (mostly hex digits) lives in the mono. A button label ("Place Bet") lives in the sans. When the two meet inline ("0.098 SKR on YES"), the SKR amount is mono and the rest is sans.
 
 ## 4. Elevation
 
@@ -169,8 +327,8 @@ When a status is genuinely incidental (filters, sort options, secondary tags), a
 The defining decision; two equal blocks, opposing semantic colors, no chrome between them.
 
 - **Layout:** full-width row, 50 / 50 split, 4 dp gutter.
-- **YES:** State Kelp background, Ash Coal text, mono SOL amount, sans verb. Pressed lifts to a deeper kelp.
-- **NO:** State Terra background, Ash Coal text, mono SOL amount, sans verb. Pressed lifts to a deeper terra.
+- **YES:** State Kelp background, Ash Coal text, mono SKR amount, sans verb. Pressed lifts to a deeper kelp.
+- **NO:** State Terra background, Ash Coal text, mono SKR amount, sans verb. Pressed lifts to a deeper terra.
 - **Selected:** the chosen side stays at full saturation; the other fades to its own quiet variant.
 - **Per-side amount:** mono tabular, large, top-aligned in the block.
 
@@ -206,7 +364,7 @@ Minimal. The screen is the marquee, not the chrome.
 ### Do:
 
 - **Do** treat Signal Amber as a value indicator, exclusively. Pool balances, primary actions, verified states, won-bet amounts.
-- **Do** use tabular mono figures (`tnum`) for every digit that represents a value; SOL amounts and hashes must never jitter.
+- **Do** use tabular mono figures (`tnum`) for every digit that represents a value; SKR amounts and hashes must never jitter.
 - **Do** use tonal layering (Ash Coal, Graphite, Charcoal) to convey depth; flat at rest, one tonal step on lift.
 - **Do** give Personhood, SGT-detected, and Verified states a full Status Surface block, not a chip.
 - **Do** put the primary action where a Seeker thumb lands one-handed; bottom-anchored on every action screen.
