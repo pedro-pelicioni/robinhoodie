@@ -16,9 +16,9 @@ export const SEEKER_GROUP_MINT_MAINNET = new PublicKey(
   "GT22s89nU4iWFkNXj1Bw6uYhJJWDRPpShHt4Bk8f99Te",
 );
 
-// Stretch: a 200 m geo-fenced market centered on Miami Beach Convention Center
+// Stretch: a 1 km geo-fenced market centered on Miami Beach Convention Center
 // (the EasyA Consensus venue 2026-05-05..05-07).
-export const VENUE_GEO = { lat: 25.7951, lon: -80.134, radiusM: 200 };
+export const VENUE_GEO = { lat: 25.7951, lon: -80.134, radiusM: 1000 };
 
 // Helius devnet (free tier) — replace with your own if you hit rate limits.
 export const DEVNET_RPC =

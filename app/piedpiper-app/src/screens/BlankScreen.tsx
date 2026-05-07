@@ -118,7 +118,11 @@ export default function BlankScreen() {
         enriched.push(view);
       }
       enriched.sort((a, b) => a.account.status - b.account.status);
-      setMarkets(enriched);
+      // Drop legacy geo-fenced markets seeded with the old 50 m radius.
+      const visible = enriched.filter(
+        (v) => v.account.geoH3 === 0n || v.account.geoRadiusM >= 1000,
+      );
+      setMarkets(visible);
       setPoolLamports(poolBalance);
       setVerified(verifyAcc !== null);
 

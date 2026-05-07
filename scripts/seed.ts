@@ -137,7 +137,7 @@ async function main() {
   console.log("  Demo market PDA:", market.toBase58());
   console.log("  Market id:", marketId.toString());
 
-  // 4b. Geo-fenced market for the GPS stretch demo (50m radius)
+  // 4b. Geo-fenced market for the GPS stretch demo (1km radius)
   console.log("\n[5/5] Creating geo-fenced demo market…");
   const geoMarketId = new BN(Date.now() + 1);
   const geoMarket = PublicKey.findProgramAddressSync(
@@ -150,7 +150,7 @@ async function main() {
       "Will it rain at the venue tomorrow?",
       endTs,
       new BN(1),
-      50,
+      1000,
     )
     .accountsStrict({
       market: geoMarket,

@@ -162,15 +162,24 @@ export function useAuthorization() {
     },
     [authorization]
   );
+  // Local-only cache wipe. Used when Seed Vault has invalidated the auth_token
+  // out from under us — calling wallet.deauthorize at that point would just
+  // open the picker again, so we just nuke AsyncStorage and force a fresh
+  // authorize on the next op.
+  const clearAuthorization = useCallback(async () => {
+    await persistAuthorization(null);
+    queryClient.invalidateQueries({ queryKey: ["wallet-authorization"] });
+  }, [queryClient]);
   return useMemo(
     () => ({
       accounts: authorization?.accounts ?? null,
       authorizeSession,
       authorizeSessionWithSignIn,
       deauthorizeSession,
+      clearAuthorization,
       selectedAccount: authorization?.selectedAccount ?? null,
       isLoading,
     }),
-    [authorization, authorizeSession, deauthorizeSession]
+    [authorization, authorizeSession, deauthorizeSession, clearAuthorization]
   );
 }
