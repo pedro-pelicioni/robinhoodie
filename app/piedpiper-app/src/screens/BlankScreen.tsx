@@ -84,18 +84,21 @@ export default function BlankScreen() {
   );
   const [verified, setVerified] = useState(false);
   const [claimingUbi, setClaimingUbi] = useState(false);
+  const [claimableLamports, setClaimableLamports] = useState<number>(0);
+  const [verifiedHumans, setVerifiedHumans] = useState<number>(0);
 
   const refresh = useCallback(async () => {
     if (!selectedAccount) return;
     setLoading(true);
     try {
-      const [raw, poolBalance, verifyAcc] = await Promise.all([
+      const [raw, poolBalance, poolInfo, verifyAcc] = await Promise.all([
         connection.getProgramAccounts(PROGRAM_ID, {
           filters: [
             { memcmp: { offset: 0, bytes: bs58.encode(ACCOUNT_DISC.Market) } },
           ],
         }),
         connection.getBalance(ubiPoolPda(), "confirmed"),
+        connection.getAccountInfo(ubiPoolPda(), "confirmed"),
         connection.getAccountInfo(verificationPda(selectedAccount.publicKey)),
       ]);
 
@@ -118,6 +121,33 @@ export default function BlankScreen() {
       setMarkets(enriched);
       setPoolLamports(poolBalance);
       setVerified(verifyAcc !== null);
+
+      // Decode just the fields we need from UbiPool to compute the actual
+      // claimable amount, mirroring `claim_ubi` in lib.rs:
+      //   if (now/epoch_seconds) > pool.current_epoch:
+      //     pool.total_lamports / max(verified_count, 1)   (next claim rolls)
+      //   else:
+      //     pool.per_epoch_lamports                         (already snapshot)
+      //
+      // Layout: 8 disc | 32 admin | 32 sgt_mint | 8 total | 8 verified |
+      //         8 cur_epoch | 8 epoch_start | 8 per_epoch | 8 epoch_seconds | 1 bump
+      if (poolInfo && poolInfo.data.length >= 121) {
+        const data = poolInfo.data;
+        const totalLamports = data.readBigUInt64LE(72);
+        const verifiedCount = data.readBigUInt64LE(80);
+        const currentEpoch = data.readBigUInt64LE(88);
+        const perEpochLamports = data.readBigUInt64LE(104);
+        const epochSeconds = data.readBigInt64LE(112);
+        const nowEpoch =
+          epochSeconds > 0n
+            ? BigInt(Math.floor(Date.now() / 1000)) / epochSeconds
+            : 0n;
+        const count = verifiedCount > 0n ? verifiedCount : 1n;
+        const claimable =
+          nowEpoch > currentEpoch ? totalLamports / count : perEpochLamports;
+        setClaimableLamports(Number(claimable));
+        setVerifiedHumans(Number(verifiedCount));
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       alertAndLog("Refresh markets failed", msg);
@@ -214,6 +244,10 @@ export default function BlankScreen() {
       poolLamports !== null ? formatSol(lamportsToSol(poolLamports), 3) : "—",
     [poolLamports],
   );
+  const claimable = useMemo(
+    () => formatSol(lamportsToSol(claimableLamports), 4),
+    [claimableLamports],
+  );
 
   if (!selectedAccount) {
     return (
@@ -233,12 +267,12 @@ export default function BlankScreen() {
     <Screen>
       <View style={styles.heroWrap}>
         <HeroValueBlock
-          eyebrow="UBI Pool"
-          value={totalPool}
+          eyebrow="Your epoch share"
+          value={claimable}
           unit="SKR"
           caption={
             verified
-              ? "Your share of accumulated trading fees, claimable each epoch."
+              ? `Pool ${totalPool} SKR · ${verifiedHumans} verified ${verifiedHumans === 1 ? "human" : "humans"} · only fees + welfare donations distribute.`
               : "Verify on the Verify tab to start claiming your epoch share."
           }
         />
