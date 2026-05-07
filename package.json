@@ -19,6 +19,7 @@
     "@solana/web3.js": "^1.95.3"
   },
   "devDependencies": {
+    "@solana/kit": "^6.9.0",
     "@types/bn.js": "^5.1.5",
     "@types/chai": "^4.3.16",
     "@types/mocha": "^10.0.7",
@@ -26,6 +27,7 @@
     "chai": "^4.5.0",
     "mocha": "^10.7.0",
     "prettier": "^3.3.2",
+    "sas-lib": "^1.0.10",
     "ts-mocha": "^10.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.3"

@@ -29,6 +29,24 @@ export const DEFAULT_PROGRAM_ID = new PublicKey(
   "6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K",
 );
 
+/**
+ * Pied Piper's published Solana Attestation Service (SAS) anchor —
+ * any Solana app can verify a user's personhood by deriving the attestation
+ * PDA from these and calling `findPiedPiperPersonhood`.
+ *
+ * SAS program: 22zoJMtdu4tQc2PzL74ZUT7FrwgB1Udec8DdW4yw4BdG
+ * Schema fields: { wallet: String, sgt_mint: String, verified_at: i64 }
+ */
+export const SAS_PROGRAM_ID = new PublicKey(
+  "22zoJMtdu4tQc2PzL74ZUT7FrwgB1Udec8DdW4yw4BdG",
+);
+export const PIEDPIPER_SAS_CREDENTIAL = new PublicKey(
+  "B95yGf2Hp2Hf7ChhkcvNAxE3rAkxFB23RSLg1x9Mickq",
+);
+export const PIEDPIPER_SAS_SCHEMA = new PublicKey(
+  "AYKSbtfTyppWvozgvedXC4GQzfdRdD7zbsGB96M8Crti",
+);
+
 // All discriminators copied from target/idl/prediction_market.json — the
 // instruction one is sha256("global:donate_to_pool")[0..8], the account ones
 // are sha256("account:<Name>")[0..8].
@@ -67,6 +85,19 @@ export interface DonateArgs {
   donor: PublicKey;
   amountLamports: bigint;
   memo: string;
+}
+
+export interface PersonhoodAttestation {
+  /** SAS attestation account address — proof tx if you want to link it. */
+  attestation: PublicKey;
+  /** Subject wallet (the verified human). */
+  wallet: PublicKey;
+  /** The Token-2022 SGT mint that was held at verify time. */
+  sgtMint: PublicKey;
+  /** Unix timestamp (i64). */
+  verifiedAt: bigint;
+  /** SAS attestation expiry. */
+  expiry: bigint;
 }
 
 export interface DonorRecord {
@@ -147,6 +178,34 @@ export class PiedPiperClient {
   }
 
   /**
+   * Verify a user's personhood via Pied Piper's published SAS attestation.
+   *
+   * This is the **interop primitive**: any Solana dApp can call this to check
+   * "is this wallet a Pied Piper-attested human?" without needing to integrate
+   * the prediction_market IDL. Returns null if no attestation exists for that
+   * wallet.
+   *
+   * Under the hood: derives the attestation PDA from
+   *   `[ "attestation", credential, schema, nonce(=user) ]`
+   * (SAS-spec PDA seeds), fetches the account, decodes the published schema
+   * fields by hand. No `sas-lib` runtime dep required by callers.
+   */
+  async findPiedPiperPersonhood(user: PublicKey): Promise<PersonhoodAttestation | null> {
+    const [attestationPda] = PublicKey.findProgramAddressSync(
+      [
+        new TextEncoder().encode("attestation"),
+        PIEDPIPER_SAS_CREDENTIAL.toBuffer(),
+        PIEDPIPER_SAS_SCHEMA.toBuffer(),
+        user.toBuffer(),
+      ],
+      SAS_PROGRAM_ID,
+    );
+    const info = await this.connection.getAccountInfo(attestationPda, "confirmed");
+    if (!info) return null;
+    return decodePersonhoodAttestation(attestationPda, new Uint8Array(info.data));
+  }
+
+  /**
    * Read the current UbiPool state — useful for showing a live "total
    * accumulated welfare contributions" ticker on a B2B dashboard.
    */
@@ -205,6 +264,53 @@ function decodeDonorRecord(data: Uint8Array): DonorRecord | null {
   off += 4;
   const lastMemo = new TextDecoder().decode(data.slice(off, off + memoLen));
   return { donor, totalDonated, lastAmount, firstDonatedAt, lastDonatedAt, lastMemo };
+}
+
+/**
+ * Decode an SAS Attestation account.
+ *
+ * SAS account layout (1-byte struct discriminator + bare Borsh fields):
+ *   [0]              : u8 struct version / discriminator (always 0x02 today)
+ *   [1..33)          : nonce      (Pubkey)
+ *   [33..65)         : credential (Pubkey)
+ *   [65..97)         : schema     (Pubkey)
+ *   [97..101)        : data_len   (u32 LE)
+ *   [101..101+len)   : data       (bytes — schema-specific Borsh payload)
+ *   then             : signer (Pubkey, 32) | expiry (i64 LE) | tokenAccount (Pubkey, 32)
+ *
+ * Within `data`, our Personhood schema is three Borsh-serialized fields:
+ *   wallet:      String (u32 LE len + utf-8 bytes — base58 pubkey)
+ *   sgt_mint:    String (same)
+ *   verified_at: i64 LE
+ */
+function decodePersonhoodAttestation(
+  attestation: PublicKey,
+  bytes: Uint8Array,
+): PersonhoodAttestation | null {
+  if (bytes.length < 1 + 32 * 4 + 4 + 8) return null;
+  let off = 1;     // skip 1-byte struct discriminator
+  off += 32;       // skip nonce (we already know it — it's the user)
+  off += 32;       // skip credential
+  off += 32;       // skip schema
+  const dataLen = readU32(bytes, off);
+  off += 4;
+  if (off + dataLen + 32 + 8 + 32 > bytes.length) return null;
+  const data = bytes.slice(off, off + dataLen);
+  off += dataLen;
+  off += 32;       // signer
+  const expiry = readI64(bytes, off);
+
+  // Inner Borsh personhood payload
+  let p = 0;
+  const walletLen = readU32(data, p); p += 4;
+  const wallet = new PublicKey(new TextDecoder().decode(data.slice(p, p + walletLen)));
+  p += walletLen;
+  const sgtMintLen = readU32(data, p); p += 4;
+  const sgtMint = new PublicKey(new TextDecoder().decode(data.slice(p, p + sgtMintLen)));
+  p += sgtMintLen;
+  const verifiedAt = readI64(data, p);
+
+  return { attestation, wallet, sgtMint, verifiedAt, expiry };
 }
 
 function decodeUbiPool(data: Uint8Array): UbiPool | null {

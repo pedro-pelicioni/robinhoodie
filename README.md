@@ -25,6 +25,9 @@ The app cannot run without a Seeker. Personhood is gated on on-chain ownership o
 | `claim_ubi` | [`64W5…NBdv`](https://explorer.solana.com/tx/64W5ZZkSpRMZwxfDVYH4xBPn6dj5cicT9VELGHwYpofSAZxijciGZm537pL4SPeRqmJWLVPrRh5njkPofUjqNBdv?cluster=devnet) | 0.002 SOL distributed to the (sole) verified Seeker for epoch `5927174` |
 | `resolve_market(YES)` | [`2gh3…tKFq`](https://explorer.solana.com/tx/2gh3NNqdWE2uxYrzV2HuxqdjnQ1bDX3UkE8QaBJBG8dbmDAYxWcFmieuZvXoxvpywZcSKDkAPovCty1h3R7xtKFq?cluster=devnet) | Admin resolved, status flipped to settled, outcome `YES` |
 | `donate_to_pool(0.05 SOL, "Acme Corp Q2 2026 welfare contribution")` (via `@piedpiper/sdk`) | [`4WrK…DFzg`](https://explorer.solana.com/tx/4WrKVr1LAzvrCDwkjsXkYpdQcByFWAkptH6s6n7twSv4X37tpafE6xUNwNe8rvU9aqDocsMGm3AGpdDuWS3bDFzg?cluster=devnet) | DonorRecord PDA `9qnV…7oPi` created; 0.05 SOL added to UbiPool's distributable counter |
+| **SAS** `CreateCredential` ("PiedPiper" issuer) | [`tdcT…JNC`](https://explorer.solana.com/tx/tdcTKDWBLGWC1ePgnUiNVdU7H8egyGYUGqyZ7vVcDq6zqELBpVSeXh2mzDhFzdSYg7SFK4cEAEVEK8gbW7WnJNC?cluster=devnet) | Credential `B95y…ickq` |
+| **SAS** `CreateSchema` ("Personhood" — wallet/sgt_mint/verified_at) | [`4wgf…a4sv`](https://explorer.solana.com/tx/4wgfQx35D8SFMM6mVkcm3ZNT515RvEWVPiq7cuCi9KsQSJSKbE6UX12EjBnqFTU5S9ZdZDScTzVJxJ1EwLpEa4sv?cluster=devnet) | Schema `AYKS…Crti`, layout `[12, 12, 8]` |
+| **SAS** `CreateAttestation` (Pied Piper attests Seeker `7f6N…X7iY` is human) | [`49wR…MdzN`](https://explorer.solana.com/tx/49wR4tu8YYkMe8H5eJE7BpkcQ7Re3fDWRYUXADKDVDPE8jmXwbfGmqPMZs5D7rbSMKBwZQpd6MF4SWHfmdk1MdzN?cluster=devnet) | Attestation `8u6W…fme7` (10-year expiry) — readable by **any** Solana app via `client.findPiedPiperPersonhood(wallet)` |
 
 ## Why Seeker
 
@@ -65,6 +68,34 @@ UBI distribution is **per-epoch (`epoch_seconds` configurable; demo uses 5 min)*
 | Seeker wallet (demo) | [`7f6NooL9bqu1NGFctqNqi1nMVFtnM3GvF7HZ11YzX7iY`](https://explorer.solana.com/address/7f6NooL9bqu1NGFctqNqi1nMVFtnM3GvF7HZ11YzX7iY?cluster=devnet) (holds 1 SGT) |
 | `VerificationRecord` PDA (demo Seeker) | [`2BSUJyXZom2XrFPmuXWixUg6HY3w6ptz7pkwB8KQmaX2`](https://explorer.solana.com/address/2BSUJyXZom2XrFPmuXWixUg6HY3w6ptz7pkwB8KQmaX2?cluster=devnet) |
 | Epoch length (demo) | 300 s (5 min) |
+
+### SAS (Solana Attestation Service) interop
+
+Pied Piper personhood is also published as an **SAS attestation** on devnet — any Solana app can verify a wallet without integrating our IDL.
+
+| Artifact | Address |
+| --- | --- |
+| SAS program | [`22zoJMtdu4tQc2PzL74ZUT7FrwgB1Udec8DdW4yw4BdG`](https://explorer.solana.com/address/22zoJMtdu4tQc2PzL74ZUT7FrwgB1Udec8DdW4yw4BdG?cluster=devnet) |
+| Pied Piper credential (issuer) | [`B95yGf2Hp2Hf7ChhkcvNAxE3rAkxFB23RSLg1x9Mickq`](https://explorer.solana.com/address/B95yGf2Hp2Hf7ChhkcvNAxE3rAkxFB23RSLg1x9Mickq?cluster=devnet) |
+| Personhood schema (`wallet, sgt_mint, verified_at`) | [`AYKSbtfTyppWvozgvedXC4GQzfdRdD7zbsGB96M8Crti`](https://explorer.solana.com/address/AYKSbtfTyppWvozgvedXC4GQzfdRdD7zbsGB96M8Crti?cluster=devnet) |
+| First attestation (Seeker `7f6N…X7iY`) | [`8u6WTfmKpfqgB6TGXdEzx7zSYNMLacbLmQmmhcDVfme7`](https://explorer.solana.com/address/8u6WTfmKpfqgB6TGXdEzx7zSYNMLacbLmQmmhcDVfme7?cluster=devnet) |
+
+Try it:
+
+```bash
+ts-node scripts/sas-verify.ts --user=<any-wallet>
+# → prints { wallet, sgtMint, verifiedAt, expiry } if Pied Piper has attested,
+#   "No personhood attestation" otherwise.
+```
+
+…or in any third-party Solana app:
+
+```ts
+import { PiedPiperClient } from "@piedpiper/sdk";
+const client = new PiedPiperClient(connection);
+const att = await client.findPiedPiperPersonhood(userPubkey);
+if (att) console.log("Verified human since", new Date(Number(att.verifiedAt) * 1000));
+```
 
 ## Run locally
 
@@ -110,6 +141,8 @@ cd app/piedpiper-app/android && ./gradlew assembleRelease
 
 - **Hardware-attested personhood as a hard gate** — no Seeker → no app. Every signature is a biometric touch on a TEE-isolated key.
 - **Fee → UBI loop** — every prediction-market trade compounds a public-goods pool, distributed only to verified Seeker holders via a daily epoch claim with on-chain double-claim rejection.
+- **SAS-published personhood — Pied Piper as a personhood issuer for any Solana app.** We're a credential issuer on the Solana Foundation's [Solana Attestation Service](https://github.com/solana-foundation/solana-attestation-service) (program `22zo…4BdG`). Every verified Seeker user gets a real SAS attestation any third-party dApp can read with `client.findPiedPiperPersonhood(wallet)` — no IDL integration, no `sas-lib` runtime dep needed by callers (the SDK does the byte-slice decode itself). Live first attestation: [`8u6W…fme7`](https://explorer.solana.com/address/8u6WTfmKpfqgB6TGXdEzx7zSYNMLacbLmQmmhcDVfme7?cluster=devnet).
+- **Live UBI home-screen widget — Glance / Compose, no RN bridge involvement.** The widget process polls devnet directly via OkHttp + base64 + 121-byte `UbiPool` slice (Kotlin port of `app/.../utils/codec.ts`), so it ticks even when the main app isn't running. Renders on home screen, updates every 30 min — the kind of mobile-native artefact judges literally don't see from any other dApp. Widget provider verified active on the Seeker via `dumpsys appwidget`.
 - **`@piedpiper/sdk` — welfare companies as a primitive.** A two-line drop-in for any Solana app, payroll script, or treasury bot to donate to the same UBI pool with an on-chain memo + per-donor `DonorRecord` PDA for tax / leaderboard / reputation purposes. Confirmed end-to-end with a live "Acme Corp Q2 2026 welfare contribution" tx on devnet. Companies become *welfare contributors* without needing to integrate an oracle, manage epoch math, or run their own UBI program — they just call `client.donateInstruction({ donor, amountLamports, memo })`.
 - **Hand-rolled Borsh codec** to bypass `@coral-xyz/anchor`'s `buffer-layout`-based decoder, which crashes on Hermes (`Buffer.prototype.readUIntLE is not a function`). Account discriminators + slice-based field reads in [`app/piedpiper-app/src/utils/codec.ts`](app/piedpiper-app/src/utils/codec.ts). The instruction encoder is 50 lines of `Uint8Array` concatenation against the IDL discriminators — drop-in replacement for `program.methods.x().instruction()`. The same approach powers the SDK so it runs zero-deps in browser, Node, and React Native.
 - **Geo-fenced markets** with on-device GPS check (`expo-location`) gating the bet button — the rain market only takes bets when you're physically near the venue.
