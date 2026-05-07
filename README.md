@@ -1,5 +1,9 @@
 # RobinHoodie
 
+<p align="center">
+  <img src="logo.jpeg" alt="RobinHoodie" width="640" />
+</p>
+
 > **Hackathon prototype** — built solo in <24h for **EasyA Consensus Hackathon Miami, May 5–7, 2026**.
 > Devnet only. Not for production use.
 
@@ -14,7 +18,7 @@ The app cannot run without a Seeker. Personhood is gated on on-chain ownership o
 | | | |
 | :---: | :---: | :---: |
 | ![Verify screen](media/01_verify.png) | ![Markets screen](media/02_markets.png) | ![Settled win](media/03_settled.png) |
-| **Step 1** — SGT detected, biometric-signed `register_verification` writes a `VerificationRecord` PDA. | **Step 2** — Browse open markets. Geo-fenced market correctly greys out when out of range. | **Step 3** — Bet placed (0.098 SOL on YES) → market settled YES → trophy chip shows the win, auto-credited at next epoch. |
+| **Step 1** — SGT detected, biometric-signed `register_verification` writes a `VerificationRecord` PDA. UBI claims now open. | **Step 2** — `YOUR EPOCH SHARE` hero shows the wallet's claimable cut of the UbiPool (0.002 SKR of a 6.005 SKR pool, 1 verified human). Open market `Will BTC > $100k by EOD?` is live with YES/NO pools. | **Step 3** — Bet placed (0.098 SKR on YES) → market settled YES → trophy chip shows the 0.0980 SKR win, auto-credited at next epoch. |
 
 📹 [Slideshow demo (15 s, mp4)](media/demo.mp4) · 📦 Signed APK v0.1.0 (attach to a GitHub Release; not committed — `*.apk` is gitignored) · 📚 [`@piedpiper/sdk`](packages/sdk/) — donate to UBI from any Solana app
 

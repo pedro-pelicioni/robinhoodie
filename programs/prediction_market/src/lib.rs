@@ -234,16 +234,24 @@ pub mod prediction_market {
         require!(record_sgt_mint == pool_sgt_mint, ErrorCode::WrongSgtMint);
 
         let current_epoch = (now / pool_epoch_seconds) as u64;
-        require!(record_last_claim_epoch < current_epoch, ErrorCode::AlreadyClaimedEpoch);
+        // Anti-double-claim gate disabled for the v0.1 hackathon demo so the
+        // judges can claim repeatedly during the recording. Re-enable for
+        // mainnet — see `record_last_claim_epoch < current_epoch`.
+        let _ = record_last_claim_epoch;
 
+        // Demo simplification: always recompute per_epoch_lamports against the
+        // *current* pool balance. With the double-claim gate above disabled,
+        // this lets repeated claims drain the pool gracefully (each claim
+        // takes a fresh "fair share" of what's left) rather than locking the
+        // payout to a stale snapshot that runs out after the first claim.
         let amount = {
             let pool = &mut ctx.accounts.ubi_pool;
             if pool.current_epoch < current_epoch {
                 pool.current_epoch = current_epoch;
                 pool.epoch_start = current_epoch as i64 * pool.epoch_seconds;
-                let count = pool.verified_count.max(1);
-                pool.per_epoch_lamports = pool.total_lamports / count;
             }
+            let count = pool.verified_count.max(1);
+            pool.per_epoch_lamports = pool.total_lamports / count;
             pool.per_epoch_lamports
         };
         require!(amount > 0, ErrorCode::NoUbiAvailable);

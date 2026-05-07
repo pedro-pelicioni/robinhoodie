@@ -22,6 +22,7 @@ export function useMobileWallet() {
   const {
     authorizeSessionWithSignIn,
     authorizeSession,
+    freshAuthorizeSession,
     deauthorizeSession,
     clearAuthorization,
   } = useAuthorization();
@@ -54,14 +55,25 @@ export function useMobileWallet() {
     await clearAuthorization();
   }, [deauthorizeSession, clearAuthorization]);
 
+  // Default path uses the cached auth_token (read live from AsyncStorage in
+  // authorizeSession). If Seed Vault rejects the cached token, MWA closes
+  // the bottom sheet and we surface a `CancellationException` — the entire
+  // `transact()` session is dead at that point, so we open a NEW transact()
+  // and force a fresh authorize (no auth_token) on the retry. We deliberately
+  // do NOT clearAuthorization() in between: that would null out
+  // `selectedAccount` and unmount the host screen, killing the new transact.
   const signAndSendTransaction = useCallback(
     async (
       transaction: Transaction | VersionedTransaction,
       minContextSlot: number,
     ): Promise<TransactionSignature> => {
-      const run = async () =>
-        await transact(async (wallet) => {
-          await authorizeSession(wallet);
+      const run = (fresh: boolean) =>
+        transact(async (wallet) => {
+          if (fresh) {
+            await freshAuthorizeSession(wallet);
+          } else {
+            await authorizeSession(wallet);
+          }
           const signatures = await wallet.signAndSendTransactions({
             transactions: [transaction],
             minContextSlot,
@@ -69,23 +81,22 @@ export function useMobileWallet() {
           return signatures[0];
         });
       try {
-        return await run();
-      } catch (e: unknown) {
-        if (isStaleAuthCancellation(e)) {
-          await clearAuthorization();
-          return await run();
-        }
-        throw e;
+        return await run(false);
+      } catch (e) {
+        if (!isStaleAuthCancellation(e)) throw e;
+        return await run(true);
       }
     },
-    [authorizeSession, clearAuthorization]
+    [authorizeSession, freshAuthorizeSession]
   );
 
   const signMessage = useCallback(
     async (message: Uint8Array): Promise<Uint8Array> => {
-      const run = async () =>
-        await transact(async (wallet) => {
-          const authResult = await authorizeSession(wallet);
+      const run = (fresh: boolean) =>
+        transact(async (wallet) => {
+          const authResult = fresh
+            ? await freshAuthorizeSession(wallet)
+            : await authorizeSession(wallet);
           const signedMessages = await wallet.signMessages({
             addresses: [authResult.address],
             payloads: [message],
@@ -93,16 +104,13 @@ export function useMobileWallet() {
           return signedMessages[0];
         });
       try {
-        return await run();
-      } catch (e: unknown) {
-        if (isStaleAuthCancellation(e)) {
-          await clearAuthorization();
-          return await run();
-        }
-        throw e;
+        return await run(false);
+      } catch (e) {
+        if (!isStaleAuthCancellation(e)) throw e;
+        return await run(true);
       }
     },
-    [authorizeSession, clearAuthorization]
+    [authorizeSession, freshAuthorizeSession]
   );
 
   return useMemo(

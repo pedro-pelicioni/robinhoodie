@@ -129,15 +129,35 @@ export function useAuthorization() {
   );
   const authorizeSession = useCallback(
     async (wallet: AuthorizeAPI) => {
+      // Read live from AsyncStorage rather than the React Query cache. The
+      // hook's closure can capture a stale `authorization` value across
+      // back-to-back transactions (each tx writes a new auth_token but the
+      // component may not have re-rendered before the next call kicks off).
+      // Reading live guarantees we hand the wallet the freshest token.
+      const live = await fetchAuthorization();
       const authorizationResult = await wallet.authorize({
         identity: APP_IDENTITY,
         chain: CHAIN_IDENTIFIER,
-        auth_token: authorization?.authToken,
+        auth_token: live?.authToken,
       });
       return (await handleAuthorizationResult(authorizationResult))
         .selectedAccount;
     },
-    [authorization, handleAuthorizationResult]
+    [handleAuthorizationResult]
+  );
+  // Forces a fresh authorize round-trip — never passes a cached `auth_token`.
+  // Used by the cancellation retry path so we don't keep handing the wallet
+  // the same invalidated token in a loop.
+  const freshAuthorizeSession = useCallback(
+    async (wallet: AuthorizeAPI) => {
+      const authorizationResult = await wallet.authorize({
+        identity: APP_IDENTITY,
+        chain: CHAIN_IDENTIFIER,
+      });
+      return (await handleAuthorizationResult(authorizationResult))
+        .selectedAccount;
+    },
+    [handleAuthorizationResult]
   );
   const authorizeSessionWithSignIn = useCallback(
     async (wallet: AuthorizeAPI, signInPayload: SignInPayload) => {
@@ -175,11 +195,18 @@ export function useAuthorization() {
       accounts: authorization?.accounts ?? null,
       authorizeSession,
       authorizeSessionWithSignIn,
+      freshAuthorizeSession,
       deauthorizeSession,
       clearAuthorization,
       selectedAccount: authorization?.selectedAccount ?? null,
       isLoading,
     }),
-    [authorization, authorizeSession, deauthorizeSession, clearAuthorization]
+    [
+      authorization,
+      authorizeSession,
+      freshAuthorizeSession,
+      deauthorizeSession,
+      clearAuthorization,
+    ]
   );
 }

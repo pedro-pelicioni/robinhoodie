@@ -22,6 +22,7 @@ import { buildClaimUbiTx, buildPlaceBetTx } from "../utils/txs";
 import { alertAndLog } from "../utils/alertAndLog";
 import { ellipsify } from "../utils/ellipsify";
 import { VENUE_GEO } from "../utils/config";
+import { refreshUbiWidget } from "../utils/widgetBridge";
 
 import { theme } from "../theme/tokens";
 import { Screen } from "../components/primitives/Screen";
@@ -216,6 +217,7 @@ export default function BlankScreen() {
         alertAndLog(`Bet placed (${side.toUpperCase()})`, ellipsify(sig));
         setSelectedSides((p) => ({ ...p, [id]: null }));
         await refresh();
+        void refreshUbiWidget();
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         alertAndLog("Bet failed", msg);
@@ -235,6 +237,7 @@ export default function BlankScreen() {
       await connection.confirmTransaction(sig, "confirmed");
       alertAndLog("UBI claimed", ellipsify(sig));
       await refresh();
+      void refreshUbiWidget();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       alertAndLog("UBI claim failed", msg);
@@ -290,7 +293,7 @@ export default function BlankScreen() {
           }
           caption={verified ? "Biometric required · claim_ubi" : undefined}
           onPress={onClaimUbi}
-          disabled={!verified || claimingUbi || loading}
+          disabled={!verified || claimingUbi}
           loading={claimingUbi}
         />
       </View>
