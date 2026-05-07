@@ -37,12 +37,16 @@ UBI distribution is **per-epoch (`epoch_seconds` configurable; demo uses 5 min)*
 
 | Artifact | Address |
 | --- | --- |
-| Program ID | _(filled at deploy time)_ |
-| UbiPool PDA | _(filled at seed time)_ |
-| Demo market PDA | _(filled at seed time)_ |
-| Mock SGT mint | _(filled at seed time — Token-2022)_ |
-
-Verify on [Solana Explorer (devnet)](https://explorer.solana.com/?cluster=devnet).
+| Program ID | [`6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K`](https://explorer.solana.com/address/6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K?cluster=devnet) |
+| ProgramData | [`CHiZgpmJKqB9XFAesuoMaurFZmz4w74EegCpdLG3pPS3`](https://explorer.solana.com/address/CHiZgpmJKqB9XFAesuoMaurFZmz4w74EegCpdLG3pPS3?cluster=devnet) |
+| Upgrade authority | `58UM4CdJVF489o89LMWpuboN2wv4oy1RhNQcWWVdu4JW` |
+| Deploy tx | [`G72N9MH3gN8y…`](https://explorer.solana.com/tx/G72N9MH3gN8yDVxXwNAnGEhdamo4vuftCR2fGuTf1FUhAwncPZvmqvCW2r1FK6Af9jWerLxy5UMBaRsAZS2NG7H?cluster=devnet) (slot 460628880) |
+| UbiPool PDA | [`2A36A6Vujy6G9AzUwFp3eg9vfSTWWxYWrsUgtBmYDiLS`](https://explorer.solana.com/address/2A36A6Vujy6G9AzUwFp3eg9vfSTWWxYWrsUgtBmYDiLS?cluster=devnet) |
+| Demo market — plain | [`8LAcrJAFNQ1zeS6EnkFbAKHXcr2WB7ngYXZhNZyqDP8e`](https://explorer.solana.com/address/8LAcrJAFNQ1zeS6EnkFbAKHXcr2WB7ngYXZhNZyqDP8e?cluster=devnet) (id `1778128168321`) |
+| Demo market — geo-fenced (50 m, venue) | [`HuFZZ217US3pT4gUJJ6thg3m3bHV9vwAWGfWvcQt7AVJ`](https://explorer.solana.com/address/HuFZZ217US3pT4gUJJ6thg3m3bHV9vwAWGfWvcQt7AVJ?cluster=devnet) (id `1778128169106`) |
+| Mock SGT mint (Token-2022) | [`DpGjpCVXLk4MiYySSh3AbVxYzcvM8quuiqjNoBxB5Co`](https://explorer.solana.com/address/DpGjpCVXLk4MiYySSh3AbVxYzcvM8quuiqjNoBxB5Co?cluster=devnet) |
+| Seeker wallet (demo) | [`7f6NooL9bqu1NGFctqNqi1nMVFtnM3GvF7HZ11YzX7iY`](https://explorer.solana.com/address/7f6NooL9bqu1NGFctqNqi1nMVFtnM3GvF7HZ11YzX7iY?cluster=devnet) (holds 1 SGT) |
+| Epoch length (demo) | 300 s (5 min) |
 
 ## Run locally
 
