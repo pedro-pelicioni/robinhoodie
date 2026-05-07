@@ -9,6 +9,22 @@ The app cannot run without a Seeker. Personhood is gated on on-chain ownership o
 
 > *The first prediction market that cannot exist without a Seeker — hardware-attested personhood unlocks fee-funded UBI.*
 
+| | | |
+| :---: | :---: | :---: |
+| ![Verify screen](media/01_verify.png) | ![Markets screen](media/02_markets.png) | ![Settled win](media/03_settled.png) |
+| **Step 1** — SGT detected, biometric-signed `register_verification` writes a `VerificationRecord` PDA. | **Step 2** — Browse open markets. Geo-fenced market correctly greys out when out of range. | **Step 3** — Bet placed (0.098 SOL on YES) → market settled YES → trophy chip shows the win, auto-credited at next epoch. |
+
+📹 [Slideshow demo (15 s, mp4)](media/demo.mp4) · 📦 Signed APK v0.1.0 (attach to a GitHub Release; not committed — `*.apk` is gitignored)
+
+## End-to-end on devnet (real Seeker, this submission)
+
+| Action | Tx | Confirmation |
+| --- | --- | --- |
+| `register_verification` | [`29Kk…NBdv`](https://explorer.solana.com/tx/29KkBLJUeHFRNA2MjFZvGboLeutjedkdZD8quUkscBNNFv8YhSZN1iV9XqvVbPenMexrshrt1aBcXxgZojzUcNBdv?cluster=devnet) | `VerificationRecord` PDA `2BSU…maX2` exists |
+| `place_bet(YES, 0.1 SOL)` | [`2ySz…DwYW`](https://explorer.solana.com/tx/2ySzJddoDymahfM9UK9zMrfZJmS3nYFbAdPm8kLgTkvMXkX6Xh6wZik1B3wJ8UUtT5d3EBTovhDN9rbsp4eaDwYW?cluster=devnet) | Market `DntC…zhEb` YES vault holds 0.098 SOL; 0.002 SOL fee accrued to UbiPool |
+| `claim_ubi` | [`64W5…NBdv`](https://explorer.solana.com/tx/64W5ZZkSpRMZwxfDVYH4xBPn6dj5cicT9VELGHwYpofSAZxijciGZm537pL4SPeRqmJWLVPrRh5njkPofUjqNBdv?cluster=devnet) | 0.002 SOL distributed to the (sole) verified Seeker for epoch `5927174` |
+| `resolve_market(YES)` | [`2gh3…tKFq`](https://explorer.solana.com/tx/2gh3NNqdWE2uxYrzV2HuxqdjnQ1bDX3UkE8QaBJBG8dbmDAYxWcFmieuZvXoxvpywZcSKDkAPovCty1h3R7xtKFq?cluster=devnet) | Admin resolved, status flipped to settled, outcome `YES` |
+
 ## Why Seeker
 
 | Layer | Role in Pied Piper |
@@ -41,45 +57,46 @@ UBI distribution is **per-epoch (`epoch_seconds` configurable; demo uses 5 min)*
 | ProgramData | [`CHiZgpmJKqB9XFAesuoMaurFZmz4w74EegCpdLG3pPS3`](https://explorer.solana.com/address/CHiZgpmJKqB9XFAesuoMaurFZmz4w74EegCpdLG3pPS3?cluster=devnet) |
 | Upgrade authority | `58UM4CdJVF489o89LMWpuboN2wv4oy1RhNQcWWVdu4JW` |
 | Deploy tx | [`G72N9MH3gN8y…`](https://explorer.solana.com/tx/G72N9MH3gN8yDVxXwNAnGEhdamo4vuftCR2fGuTf1FUhAwncPZvmqvCW2r1FK6Af9jWerLxy5UMBaRsAZS2NG7H?cluster=devnet) (slot 460628880) |
-| UbiPool PDA | [`2A36A6Vujy6G9AzUwFp3eg9vfSTWWxYWrsUgtBmYDiLS`](https://explorer.solana.com/address/2A36A6Vujy6G9AzUwFp3eg9vfSTWWxYWrsUgtBmYDiLS?cluster=devnet) |
-| Demo market — plain | [`8LAcrJAFNQ1zeS6EnkFbAKHXcr2WB7ngYXZhNZyqDP8e`](https://explorer.solana.com/address/8LAcrJAFNQ1zeS6EnkFbAKHXcr2WB7ngYXZhNZyqDP8e?cluster=devnet) (id `1778128168321`) |
-| Demo market — geo-fenced (50 m, venue) | [`HuFZZ217US3pT4gUJJ6thg3m3bHV9vwAWGfWvcQt7AVJ`](https://explorer.solana.com/address/HuFZZ217US3pT4gUJJ6thg3m3bHV9vwAWGfWvcQt7AVJ?cluster=devnet) (id `1778128169106`) |
+| UbiPool PDA | [`2A36A6Vujy6G9AzUwFp3eg9vfSTWWxYWrsUgtBmYDiLS`](https://explorer.solana.com/address/2A36A6Vujy6G9AzUwFp3eg9vfSTWWxYWrsUgtBmYDiLS?cluster=devnet) (4 SOL pre-funded, 0.002 SOL fee accrued) |
+| Demo market — plain (open 24 h) | [`DntCRkFyUpg9P7euxgwJEKfhLKbN3ZxGTjYUWCnZzhEb`](https://explorer.solana.com/address/DntCRkFyUpg9P7euxgwJEKfhLKbN3ZxGTjYUWCnZzhEb?cluster=devnet) (id `1778151998655`) — settled YES, holds the 0.098 SOL bet |
+| Demo market — geo-fenced (50 m, venue) | [`7iFimXanNxXRbpCBHWf7XTzDgJgVpuuRpwcLLqiQySqH`](https://explorer.solana.com/address/7iFimXanNxXRbpCBHWf7XTzDgJgVpuuRpwcLLqiQySqH?cluster=devnet) (id `1778151999578`) |
 | Mock SGT mint (Token-2022) | [`DpGjpCVXLk4MiYySSh3AbVxYzcvM8quuiqjNoBxB5Co`](https://explorer.solana.com/address/DpGjpCVXLk4MiYySSh3AbVxYzcvM8quuiqjNoBxB5Co?cluster=devnet) |
 | Seeker wallet (demo) | [`7f6NooL9bqu1NGFctqNqi1nMVFtnM3GvF7HZ11YzX7iY`](https://explorer.solana.com/address/7f6NooL9bqu1NGFctqNqi1nMVFtnM3GvF7HZ11YzX7iY?cluster=devnet) (holds 1 SGT) |
+| `VerificationRecord` PDA (demo Seeker) | [`2BSUJyXZom2XrFPmuXWixUg6HY3w6ptz7pkwB8KQmaX2`](https://explorer.solana.com/address/2BSUJyXZom2XrFPmuXWixUg6HY3w6ptz7pkwB8KQmaX2?cluster=devnet) |
 | Epoch length (demo) | 300 s (5 min) |
 
 ## Run locally
 
-```bash
-# 1. Devnet config + airdrop
-solana config set -u devnet
-solana airdrop 5
+See [`SETUP.md`](SETUP.md) for the full runbook (toolchain, devnet airdrop, Seeker pairing, dev-client install, release APK build).
 
-# 2. Build + deploy program
-anchor build
+```bash
+# Build program + sync IDL into the app
+yarn build                               # = anchor build && yarn prepare:app
+anchor test                              # 6/6 passing on local validator
+
+# Deploy to devnet (needs ~1.7 SOL of program rent)
 anchor deploy --provider.cluster devnet
 
-# 3. Seed devnet (mints mock SGT to your Seeker wallet, creates demo market)
-yarn seed -- --seekerPubkey=<base58-of-seeker-wallet> --epoch=300
+# Seed devnet for your Seeker (mints mock SGT, inits UbiPool, pre-funds, creates 2 demo markets)
+ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
+  yarn seed --seekerPubkey=<your-seeker-pubkey> --epoch=300
 
-# 4. Start the dev client on the connected Seeker
-cd app/piedpiper-app
-yarn
-npx expo run:android --device
-
-# 5. Build the release APK (10–25 min)
-eas build --profile preview --platform android --local
-adb install -r build-*.apk
+# Develop on Seeker
+cd app/piedpiper-app && npx expo run:android       # dev client + Metro
+# or build a signed release APK:
+cd app/piedpiper-app/android && ./gradlew assembleRelease
+# → app/build/outputs/apk/release/app-release.apk
 ```
 
 ## Demo flow
 
-1. Open app → "Connect Wallet" → MWA invokes Seed Vault.
-2. App detects mock SGT via `getTokenAccountsByOwner` filtered by Token-2022 program + the seeded SGT mint.
-3. "Verify Personhood" → MWA `signMessage` (biometric prompt) → submits `register_verification` → `VerificationRecord` PDA exists on-chain.
-4. "Place Bet" 0.1 SOL on demo market → SOL leaves wallet, 2 % accrues to `UbiPool`.
-5. Admin resolves via `yarn settle -- --marketId=<id> --outcome=true` → `claim_winnings` returns SOL.
-6. "Claim UBI" → SOL lands → second tap → "already claimed this epoch" rejected.
+1. Open app → "Connect" → MWA invokes Seed Vault → biometric authorize → wallet pubkey shown.
+2. App detects the mock SGT (deterministic Token-2022 ATA lookup) → green "SGT detected" chip.
+3. Tap **Verify Personhood** → MWA `signAndSendTransaction` → biometric → `register_verification` writes `VerificationRecord` PDA on-chain.
+4. Switch to **Markets** tab → tap green YES on the open BTC market → biometric → `place_bet` deposits 0.098 SOL into the market vault and accrues 0.002 SOL fee to `UbiPool`.
+5. Admin resolves via `yarn settle --marketId=<id> --outcome=true`.
+6. Refresh → market shows **Settled: YES** with a 🏆 "You won 0.098 SOL — auto-credited at next epoch" chip. (Per-bet claim button removed for UX; production would batch-credit via cron at resolve time.)
+7. Tap **Claim UBI** → biometric → epoch's accumulated fees flow to the verified Seeker holders.
 
 ## Known limitations
 
@@ -87,6 +104,21 @@ adb install -r build-*.apk
 - **Admin-only resolution.** Switchboard On-Demand / Pyth are designed-for via the `resolution_type` enum but not wired up.
 - **Sybil resistance is partial.** SGT-per-device + 1-claim-per-epoch is the current defense; future work: SAS attestation, ML Kit liveness, GPS H3-cell rate-limiting.
 - **Prediction-market + gambling-fee-funded UBI is a regulatory grey zone.** This is research; not for use in regulated jurisdictions.
+
+## What was novel here
+
+- **Hardware-attested personhood as a hard gate** — no Seeker → no app. Every signature is a biometric touch on a TEE-isolated key.
+- **Fee → UBI loop** — every prediction-market trade compounds a public-goods pool, distributed only to verified Seeker holders via a daily epoch claim with on-chain double-claim rejection.
+- **Hand-rolled Borsh codec** to bypass `@coral-xyz/anchor`'s `buffer-layout`-based decoder, which crashes on Hermes (`Buffer.prototype.readUIntLE is not a function`). Account discriminators + slice-based field reads in [`app/piedpiper-app/src/utils/codec.ts`](app/piedpiper-app/src/utils/codec.ts). The instruction encoder is 50 lines of `Uint8Array` concatenation against the IDL discriminators — drop-in replacement for `program.methods.x().instruction()`.
+- **Geo-fenced markets** with on-device GPS check (`expo-location`) gating the bet button — the rain market only takes bets when you're physically near the venue.
+
+## Submission artifacts
+
+- 📦 **Signed release APK** (`dist/piedpiper-v0.1.0.apk`, 65 MB; attached to the GitHub Release tagged `v0.1.0-hackathon`) — installs on any Seeker via `adb install -r`.
+- 📹 **Demo slideshow** ([`media/demo.mp4`](media/demo.mp4), 15 s) + 3 captioned screenshots in [`media/`](media/).
+- 🔗 **Live devnet program** at [`6YCUM…PH9K`](https://explorer.solana.com/address/6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K?cluster=devnet) with the four end-to-end txs above.
+- 🧪 **6/6 Anchor TS tests passing** on local validator (`anchor test`, ~72 s incl. 65 s epoch wait).
+- 🛠 **Reproducible setup runbook** in [`SETUP.md`](SETUP.md).
 
 ## Credits
 
