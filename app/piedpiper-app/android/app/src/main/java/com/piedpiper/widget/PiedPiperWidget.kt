@@ -51,7 +51,7 @@ class PiedPiperWidget : GlanceAppWidget() {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = "PIED PIPER UBI",
+                text = "ROBINHOODIE UBI",
                 style = TextStyle(
                     color = ColorProvider(Color(0xFF888888)),
                     fontSize = 11.sp,

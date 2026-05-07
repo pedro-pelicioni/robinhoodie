@@ -1,34 +1,35 @@
-import { ClusterNetwork, useCluster } from "./cluster-data-access";
-import { RadioButton, Text } from "react-native-paper";
-import { ClusterPickerRadioButtonGroupRow } from "./cluster-ui";
+import React from "react";
+import { StyleSheet, View } from "react-native";
 
-function clusternetworkToIndex(clusterName: string): number {
-  switch (clusterName) {
-    case ClusterNetwork.Devnet:
-      return 0;
-    case ClusterNetwork.Testnet:
-      return 1;
-    default:
-      throw Error("Invalid cluster selected");
-  }
-}
+import { theme } from "../../theme/tokens";
+import { Eyebrow } from "../primitives/Eyebrow";
+import { useCluster } from "./cluster-data-access";
+import { ClusterRow } from "./cluster-ui";
 
 export default function ClusterPickerFeature() {
   const { selectedCluster, clusters, setSelectedCluster } = useCluster();
-  const [devNetCluster, testNetCluster] = clusters;
-
   return (
-    <>
-      <Text variant="headlineMedium">Cluster:</Text>
-      <RadioButton.Group
-        onValueChange={(newClusternetwork) =>
-          setSelectedCluster(clusters[clusternetworkToIndex(newClusternetwork)])
-        }
-        value={selectedCluster.network}
-      >
-        <ClusterPickerRadioButtonGroupRow cluster={devNetCluster} />
-        <ClusterPickerRadioButtonGroupRow cluster={testNetCluster} />
-      </RadioButton.Group>
-    </>
+    <View style={styles.wrap}>
+      <Eyebrow>Cluster</Eyebrow>
+      <View style={styles.list}>
+        {clusters.map((cluster) => (
+          <ClusterRow
+            key={cluster.name}
+            cluster={cluster}
+            selected={selectedCluster.network === cluster.network}
+            onSelect={setSelectedCluster}
+          />
+        ))}
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  wrap: {
+    paddingTop: theme.spacing.md,
+  },
+  list: {
+    marginTop: theme.spacing.md,
+  },
+});

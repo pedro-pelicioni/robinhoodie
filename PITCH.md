@@ -3,17 +3,17 @@ PIED PIPER — PITCH DECK SOURCE DOCUMENT
 
 Project name
 
-Pied Piper. Named after the fictional Silicon Valley startup; the wink is intentional — terse, technically literal, slightly mischievous. Tagline candidates in priority order. The first prediction market that cannot exist without a Seeker — hardware-attested personhood unlocks fee-funded UBI. Or shorter. Hardware personhood. Fee-funded UBI. Built on the Seeker. Or shortest. Bet, verify, get paid — only on the Seeker.
+RobinHoodie. Named after the fictional Silicon Valley startup; the wink is intentional — terse, technically literal, slightly mischievous. Tagline candidates in priority order. The first prediction market that cannot exist without a Seeker — hardware-attested personhood unlocks fee-funded UBI. Or shorter. Hardware personhood. Fee-funded UBI. Built on the Seeker. Or shortest. Bet, verify, get paid — only on the Seeker.
 
 
 One-line description
 
-Pied Piper is a mobile-first prediction market on Solana whose 2 percent trading fees stream as Universal Basic Income to verified humans, where personhood is proven by physical ownership of a Solana Mobile Seeker phone plus a hardware-isolated biometric signature.
+RobinHoodie is a mobile-first prediction market on Solana whose 2 percent trading fees stream as Universal Basic Income to verified humans, where personhood is proven by physical ownership of a Solana Mobile Seeker phone plus a hardware-isolated biometric signature.
 
 
 The 30-second pitch
 
-Every Solana prediction market today has the same problem. Bots and sybil farms drain the upside, and there is no good answer to who counts as a real person. We solve both at once. Pied Piper only runs on a Solana Mobile Seeker. To verify as a human, you must on-chain prove ownership of the Seeker Genesis Token — a Token-2022 NFT minted to every Seeker — and then pass a Seed Vault biometric signature challenge that runs on a hardware-isolated TEE key. Once verified, you can place bets. Two percent of every trade flows to a UBI pool, and verified humans claim a share each epoch. We turn a prediction market into a public-goods machine, and we turn a phone into a personhood credential the rest of Solana can read through the Solana Attestation Service.
+Every Solana prediction market today has the same problem. Bots and sybil farms drain the upside, and there is no good answer to who counts as a real person. We solve both at once. RobinHoodie only runs on a Solana Mobile Seeker. To verify as a human, you must on-chain prove ownership of the Seeker Genesis Token — a Token-2022 NFT minted to every Seeker — and then pass a Seed Vault biometric signature challenge that runs on a hardware-isolated TEE key. Once verified, you can place bets. Two percent of every trade flows to a UBI pool, and verified humans claim a share each epoch. We turn a prediction market into a public-goods machine, and we turn a phone into a personhood credential the rest of Solana can read through the Solana Attestation Service.
 
 
 The problem
@@ -36,12 +36,12 @@ A live Glance and Compose home-screen widget, written in pure Kotlin. The widget
 
 A published TypeScript SDK, @piedpiper/sdk, that gives any Solana app, server, payroll script, or treasury bot a two-line donation primitive. Welfare companies as a primitive. Confirmed end-to-end on devnet with a one-shot Acme Corp Q2 2026 welfare contribution transaction. The SDK has zero Anchor dependency and runs in browser, Node, and React Native.
 
-An issuer credential on the Solana Foundation's Solana Attestation Service. Pied Piper is a SAS issuer at credential B95yGf2Hp2Hf7ChhkcvNAxE3rAkxFB23RSLg1x9Mickq with a Personhood schema that publishes wallet, sgt_mint, and verified_at as a 10-year-expiry attestation. Any third-party Solana app can read it with one line — client dot findPiedPiperPersonhood of wallet — without integrating our IDL or paying a runtime sas-lib dependency.
+An issuer credential on the Solana Foundation's Solana Attestation Service. RobinHoodie is a SAS issuer at credential B95yGf2Hp2Hf7ChhkcvNAxE3rAkxFB23RSLg1x9Mickq with a Personhood schema that publishes wallet, sgt_mint, and verified_at as a 10-year-expiry attestation. Any third-party Solana app can read it with one line — client dot findPiedPiperPersonhood of wallet — without integrating our IDL or paying a runtime sas-lib dependency.
 
 
 How it works end to end
 
-Step one. The user opens Pied Piper on a Seeker. The Connect button calls the Mobile Wallet Adapter, which routes into Seed Vault. The user double-taps the power button and presses their fingerprint on the Seeker's TEE-isolated sensor. The wallet pubkey is now visible.
+Step one. The user opens RobinHoodie on a Seeker. The Connect button calls the Mobile Wallet Adapter, which routes into Seed Vault. The user double-taps the power button and presses their fingerprint on the Seeker's TEE-isolated sensor. The wallet pubkey is now visible.
 
 Step two. The app does a deterministic Token-2022 Associated Token Account lookup for the Seeker Genesis Token mint. If the user holds an SGT, a green chip appears that says SGT detected. If not, the verify button stays disabled. No SGT, no personhood, no app.
 
@@ -62,7 +62,7 @@ Hardware-attested personhood as a hard gate. Not a soft signal — the app canno
 
 The fee-to-UBI loop. Every prediction market trade compounds a public goods pool. Distribution is per-epoch with on-chain double-claim rejection. Trader fees and external donations land in the same counter and are paid to the same set of verified humans on the same schedule.
 
-SAS-published personhood. Pied Piper is now a credential issuer for any Solana app on the Solana Foundation's attestation service. We are not a closed system. We are infrastructure other apps can call.
+SAS-published personhood. RobinHoodie is now a credential issuer for any Solana app on the Solana Foundation's attestation service. We are not a closed system. We are infrastructure other apps can call.
 
 The home-screen widget. A live UBI pool counter on the Seeker's home screen, written in pure Kotlin Glance and Compose, ticking every thirty minutes against devnet. No React Native bridge, no main app required. The kind of mobile-native artifact judges literally do not see from any other Solana dApp.
 
@@ -144,4 +144,4 @@ MIT.
 
 Closing line for a final slide
 
-We did not build another Solana dApp. We built the first piece of software that proves the Seeker is more than a phone. It is a personhood device, and personhood is the missing primitive in crypto. Pied Piper is what gets shipped on top.
+We did not build another Solana dApp. We built the first piece of software that proves the Seeker is more than a phone. It is a personhood device, and personhood is the missing primitive in crypto. RobinHoodie is what gets shipped on top.

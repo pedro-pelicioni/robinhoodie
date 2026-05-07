@@ -1,27 +1,5 @@
-import { useAuthorization } from "../utils/useAuthorization";
-import { StyleSheet, View } from "react-native";
+import { Screen } from "../components/primitives/Screen";
 
 export default function AccountScreen() {
-  const { selectedAccount } = useAuthorization();
-
-  return (
-    <>
-      <View style={styles.screenContainer}></View>
-    </>
-  );
+  return <Screen scroll={false} />;
 }
-
-const styles = StyleSheet.create({
-  screenContainer: {
-    height: "100%",
-    padding: 16,
-    flex: 1,
-  },
-  scrollContainer: {
-    height: "100%",
-  },
-  buttonGroup: {
-    flexDirection: "column",
-    paddingVertical: 4,
-  },
-});

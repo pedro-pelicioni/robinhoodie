@@ -1,30 +1,40 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+
 import { TopBar } from "../components/top-bar/top-bar-feature";
 import { HomeScreen } from "../screens/HomeScreen";
-import MaterialCommunityIcon from "@expo/vector-icons/MaterialCommunityIcons";
-import { useTheme } from "react-native-paper";
 import BlankScreen from "../screens/BlankScreen";
+import { theme } from "../theme/tokens";
 
 const Tab = createBottomTabNavigator();
 
-/**
- * This is the main navigator with a bottom tab bar.
- * Each tab is a stack navigator with its own set of screens.
- *
- * More info: https://reactnavigation.org/docs/bottom-tab-navigator/
- */
 export function HomeNavigator() {
-  const theme = useTheme();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         header: () => <TopBar />,
+        tabBarStyle: {
+          backgroundColor: theme.bgDeep,
+          borderTopColor: theme.border,
+          borderTopWidth: 1,
+          height: 62,
+          paddingBottom: 6,
+          paddingTop: 6,
+        },
+        tabBarActiveTintColor: theme.accent,
+        tabBarInactiveTintColor: theme.textTertiary,
+        tabBarLabelStyle: {
+          fontFamily: theme.fonts.sans.medium,
+          fontSize: 11,
+          letterSpacing: 0.6,
+          textTransform: "uppercase",
+        },
         tabBarIcon: ({ focused, color, size }) => {
           switch (route.name) {
             case "Verify":
               return (
-                <MaterialCommunityIcon
+                <MaterialCommunityIcons
                   name={focused ? "shield-check" : "shield-check-outline"}
                   size={size}
                   color={color}
@@ -32,7 +42,7 @@ export function HomeNavigator() {
               );
             case "Markets":
               return (
-                <MaterialCommunityIcon
+                <MaterialCommunityIcons
                   name={focused ? "chart-line" : "chart-line-variant"}
                   size={size}
                   color={color}

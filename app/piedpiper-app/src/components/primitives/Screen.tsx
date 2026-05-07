@@ -10,7 +10,7 @@ import {
 import { theme } from "../../theme/tokens";
 
 interface ScreenProps extends ViewProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   scroll?: boolean;
   scrollViewProps?: ScrollViewProps;
   padded?: boolean;

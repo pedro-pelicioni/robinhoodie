@@ -1,6 +1,6 @@
 # @piedpiper/sdk
 
-> Drop-in SDK for "welfare companies" — donate to the Pied Piper UBI pool from any Solana app, server, or payroll script.
+> Drop-in SDK for "welfare companies" — donate to the RobinHoodie UBI pool from any Solana app, server, or payroll script.
 
 ```bash
 yarn add @piedpiper/sdk @solana/web3.js
@@ -8,7 +8,7 @@ yarn add @piedpiper/sdk @solana/web3.js
 
 ## What it does
 
-[Pied Piper](../../README.md) is a prediction market on Solana whose 2 % trading fees stream as Universal Basic Income to verified Seeker owners. **This SDK lets anyone — not just bettors — top up the same UBI pool with an on-chain attribution record.**
+[RobinHoodie](../../README.md) is a prediction market on Solana whose 2 % trading fees stream as Universal Basic Income to verified Seeker owners. **This SDK lets anyone — not just bettors — top up the same UBI pool with an on-chain attribution record.**
 
 Use cases:
 - Q2 CSR contribution from a corporate treasury (one cron job, one tx, on-chain receipt).

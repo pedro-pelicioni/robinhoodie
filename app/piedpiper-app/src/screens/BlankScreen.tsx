@@ -1,12 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  View,
-} from "react-native";
-import { Button, Card, Chip, Divider, Text } from "react-native-paper";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import * as Location from "expo-location";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 // bs58 is a transitive dep of @solana/web3.js; no @types/bs58 ships.
@@ -16,7 +9,7 @@ const bs58 = require("bs58") as { encode(b: Uint8Array): string };
 import { useAuthorization } from "../utils/useAuthorization";
 import { useMobileWallet } from "../utils/useMobileWallet";
 import { useConnection } from "../utils/ConnectionProvider";
-import { positionPda, verificationPda } from "../utils/pdas";
+import { positionPda, ubiPoolPda, verificationPda } from "../utils/pdas";
 import { PROGRAM_ID } from "../utils/config";
 import {
   ACCOUNT_DISC,
@@ -29,6 +22,19 @@ import { buildClaimUbiTx, buildPlaceBetTx } from "../utils/txs";
 import { alertAndLog } from "../utils/alertAndLog";
 import { ellipsify } from "../utils/ellipsify";
 import { VENUE_GEO } from "../utils/config";
+
+import { theme } from "../theme/tokens";
+import { Screen } from "../components/primitives/Screen";
+import { T } from "../components/primitives/Display";
+import { Eyebrow } from "../components/primitives/Eyebrow";
+import { HeroValueBlock } from "../components/primitives/HeroValueBlock";
+import { StatusSurface } from "../components/primitives/StatusSurface";
+import { BetButtons } from "../components/primitives/BetButtons";
+import { AmountChips } from "../components/primitives/AmountChips";
+import { PrimaryButton } from "../components/primitives/PrimaryButton";
+import { GhostButton } from "../components/primitives/GhostButton";
+
+type Side = "yes" | "no";
 
 interface MarketView {
   account: Market;
@@ -52,8 +58,13 @@ function haversineMeters(
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function lamportsToSol(lamports: bigint): number {
-  return Number(lamports) / LAMPORTS_PER_SOL;
+function lamportsToSol(lamports: bigint | number): number {
+  const n = typeof lamports === "bigint" ? Number(lamports) : lamports;
+  return n / LAMPORTS_PER_SOL;
+}
+
+function formatSol(n: number, dp = 4): string {
+  return n.toFixed(dp);
 }
 
 export default function BlankScreen() {
@@ -61,27 +72,33 @@ export default function BlankScreen() {
   const { signAndSendTransaction } = useMobileWallet();
   const { connection } = useConnection();
   const [markets, setMarkets] = useState<MarketView[]>([]);
+  const [poolLamports, setPoolLamports] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [betAmounts, setBetAmounts] = useState<Record<string, string>>({});
-  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const [selectedSides, setSelectedSides] = useState<Record<string, Side | null>>(
+    {},
+  );
+  const [pendingMarketId, setPendingMarketId] = useState<string | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(
+    null,
+  );
   const [verified, setVerified] = useState(false);
+  const [claimingUbi, setClaimingUbi] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!selectedAccount) return;
     setLoading(true);
     try {
-      // Fetch all program accounts whose first 8 bytes match the Market
-      // discriminator. Filter pushes the work to the RPC node.
-      const raw = await connection.getProgramAccounts(PROGRAM_ID, {
-        filters: [
-          {
-            memcmp: {
-              offset: 0,
-              bytes: bs58.encode(ACCOUNT_DISC.Market),
-            },
-          },
-        ],
-      });
+      const [raw, poolBalance, verifyAcc] = await Promise.all([
+        connection.getProgramAccounts(PROGRAM_ID, {
+          filters: [
+            { memcmp: { offset: 0, bytes: bs58.encode(ACCOUNT_DISC.Market) } },
+          ],
+        }),
+        connection.getBalance(ubiPoolPda(), "confirmed"),
+        connection.getAccountInfo(verificationPda(selectedAccount.publicKey)),
+      ]);
+
       const enriched: MarketView[] = [];
       for (const { pubkey, account } of raw) {
         const m = decodeMarket(new Uint8Array(account.data));
@@ -99,14 +116,11 @@ export default function BlankScreen() {
       }
       enriched.sort((a, b) => a.account.status - b.account.status);
       setMarkets(enriched);
-
-      const v = await connection.getAccountInfo(
-        verificationPda(selectedAccount.publicKey),
-      );
-      setVerified(v !== null);
-    } catch (e: any) {
-      console.error("Refresh markets failed:", e?.message ?? e);
-      alertAndLog("Refresh markets failed", e?.message ?? String(e));
+      setPoolLamports(poolBalance);
+      setVerified(verifyAcc !== null);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      alertAndLog("Refresh markets failed", msg);
     } finally {
       setLoading(false);
     }
@@ -130,8 +144,6 @@ export default function BlankScreen() {
 
   const inRange = useCallback(
     (geoH3: bigint, radiusM: number): boolean => {
-      // `geo_h3 != 0` is our marker for "geo-fenced"; we resolve to the canonical
-      // demo center (`VENUE_GEO`) off-chain.
       if (geoH3 === 0n || radiusM === 0) return true;
       if (!coords) return false;
       return (
@@ -143,33 +155,38 @@ export default function BlankScreen() {
   );
 
   const onPlaceBet = useCallback(
-    async (m: MarketView, side: boolean) => {
+    async (m: MarketView, side: Side) => {
       if (!selectedAccount) return;
-      const raw = betAmounts[m.account.marketId.toString()] ?? "0.1";
-      const amountLamports = BigInt(
-        Math.floor(parseFloat(raw) * LAMPORTS_PER_SOL),
-      );
-      if (amountLamports <= 0n) {
+      const id = m.account.marketId.toString();
+      const raw = betAmounts[id] ?? "0.1";
+      const parsed = parseFloat(raw);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
         alertAndLog("Invalid amount", "Enter a positive SKR amount");
         return;
       }
-      setLoading(true);
+      const amountLamports = BigInt(Math.floor(parsed * LAMPORTS_PER_SOL));
+      setPendingMarketId(id);
       try {
         const tx = await buildPlaceBetTx(
           connection,
           selectedAccount.publicKey,
           m.account.marketId,
-          side,
+          side === "yes",
           amountLamports,
         );
-        const sig = await signAndSendTransaction(tx, await connection.getSlot());
+        const sig = await signAndSendTransaction(
+          tx,
+          await connection.getSlot(),
+        );
         await connection.confirmTransaction(sig, "confirmed");
-        alertAndLog(`Bet placed (${side ? "YES" : "NO"})`, ellipsify(sig));
+        alertAndLog(`Bet placed (${side.toUpperCase()})`, ellipsify(sig));
+        setSelectedSides((p) => ({ ...p, [id]: null }));
         await refresh();
-      } catch (e: any) {
-        alertAndLog("Bet failed", e?.message ?? String(e));
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        alertAndLog("Bet failed", msg);
       } finally {
-        setLoading(false);
+        setPendingMarketId(null);
       }
     },
     [selectedAccount, connection, betAmounts, signAndSendTransaction, refresh],
@@ -177,182 +194,323 @@ export default function BlankScreen() {
 
   const onClaimUbi = useCallback(async () => {
     if (!selectedAccount) return;
-    setLoading(true);
+    setClaimingUbi(true);
     try {
       const tx = await buildClaimUbiTx(connection, selectedAccount.publicKey);
       const sig = await signAndSendTransaction(tx, await connection.getSlot());
       await connection.confirmTransaction(sig, "confirmed");
       alertAndLog("UBI claimed", ellipsify(sig));
-    } catch (e: any) {
-      alertAndLog("UBI claim failed", e?.message ?? String(e));
+      await refresh();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      alertAndLog("UBI claim failed", msg);
     } finally {
-      setLoading(false);
+      setClaimingUbi(false);
     }
-  }, [selectedAccount, connection, signAndSendTransaction]);
+  }, [selectedAccount, connection, signAndSendTransaction, refresh]);
+
+  const totalPool = useMemo(
+    () =>
+      poolLamports !== null ? formatSol(lamportsToSol(poolLamports), 3) : "—",
+    [poolLamports],
+  );
 
   if (!selectedAccount) {
     return (
-      <View style={styles.empty}>
-        <Text variant="bodyLarge">Connect a wallet on the Verify tab first.</Text>
-      </View>
+      <Screen>
+        <StatusSurface
+          eyebrow="Wallet"
+          title="Connect on the Verify tab first"
+          subtitle="RobinHoodie's markets are gated on Seeker personhood."
+          iconName="wallet-outline"
+          tone="muted"
+        />
+      </Screen>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.screen}>
-      <View style={styles.headerRow}>
-        <Text variant="headlineSmall" style={styles.title}>
-          Markets
-        </Text>
-        <Button onPress={refresh} mode="text" loading={loading}>
-          Refresh
-        </Button>
+    <Screen>
+      <View style={styles.heroWrap}>
+        <HeroValueBlock
+          eyebrow="UBI Pool"
+          value={totalPool}
+          unit="SKR"
+          caption={
+            verified
+              ? "Your share of accumulated trading fees, claimable each epoch."
+              : "Verify on the Verify tab to start claiming your epoch share."
+          }
+        />
+        <PrimaryButton
+          label={
+            verified
+              ? claimingUbi
+                ? "Claiming…"
+                : "Claim UBI"
+              : "Verify on the Verify tab"
+          }
+          caption={verified ? "Biometric required · claim_ubi" : undefined}
+          onPress={onClaimUbi}
+          disabled={!verified || claimingUbi || loading}
+          loading={claimingUbi}
+        />
       </View>
 
-      <Card style={styles.card}>
-        <Card.Content>
-          <Text variant="titleMedium">Daily UBI</Text>
-          <Text variant="bodyMedium" style={{ opacity: 0.7 }}>
-            Claim your epoch's share of accumulated trading fees.
-          </Text>
-          <Button
-            mode="contained"
-            onPress={onClaimUbi}
-            disabled={!verified || loading}
-            loading={loading}
-            style={{ marginTop: 12 }}
-          >
-            {verified ? "Claim UBI" : "Verify on the Verify tab first"}
-          </Button>
-        </Card.Content>
-      </Card>
+      <View style={styles.marketsHeader}>
+        <Eyebrow>Markets</Eyebrow>
+        <GhostButton
+          label="Refresh"
+          iconName="refresh"
+          size="sm"
+          onPress={refresh}
+          loading={loading && markets.length > 0}
+        />
+      </View>
 
-      <Divider style={{ marginVertical: 16 }} />
+      {markets.length === 0 && !loading ? (
+        <StatusSurface
+          eyebrow="Empty"
+          title="No markets yet"
+          subtitle="Run yarn seed from the repo root to populate devnet."
+          iconName="information-outline"
+          tone="muted"
+        />
+      ) : null}
 
-      {loading && markets.length === 0 ? (
-        <ActivityIndicator />
-      ) : markets.length === 0 ? (
-        <Text>No markets yet. Run `yarn seed` from the repo root.</Text>
-      ) : (
-        markets.map((m) => {
+      <View style={styles.list}>
+        {markets.map((m) => {
           const id = m.account.marketId.toString();
           const open = m.account.status === 0;
           const settled = m.account.status === 1;
           const outcome = m.account.outcome;
           const inGeo = inRange(m.account.geoH3, m.account.geoRadiusM);
-          // We only show whether the user won (or already cashed out) — winnings
-          // are batch-distributed by a back-end cron, not a per-market button.
+          const isGeoFenced = m.account.geoH3 !== 0n;
           const winningSideStake = m.position
             ? outcome
               ? m.position.yesLamports
               : m.position.noLamports
             : 0n;
           const isWinner = settled && winningSideStake > 0n;
-          const totalPool = m.account.yesLamports + m.account.noLamports;
-          const winningPool = outcome ? m.account.yesLamports : m.account.noLamports;
+          const totalMarketPool =
+            m.account.yesLamports + m.account.noLamports;
+          const winningPool = outcome
+            ? m.account.yesLamports
+            : m.account.noLamports;
           const projectedPayout =
             isWinner && winningPool > 0n
-              ? lamportsToSol((winningSideStake * totalPool) / winningPool)
+              ? lamportsToSol((winningSideStake * totalMarketPool) / winningPool)
               : 0;
-          const isGeoFenced = m.account.geoH3 !== 0n;
+
+          const yesPool = formatSol(lamportsToSol(m.account.yesLamports), 3);
+          const noPool = formatSol(lamportsToSol(m.account.noLamports), 3);
+
+          const selected = selectedSides[id] ?? null;
+          const amount = betAmounts[id] ?? "0.1";
+          const pendingHere = pendingMarketId === id;
+          const betDisabled =
+            !verified || !inGeo || pendingHere || loading;
+
           return (
-            <Card key={id} style={styles.card}>
-              <Card.Content>
-                <Text variant="titleMedium">{m.account.question}</Text>
-                <View style={styles.statusRow}>
-                  <Chip
-                    icon={open ? "circle" : "check"}
-                    style={open ? styles.chipOpen : styles.chipSettled}
-                  >
-                    {open ? "Open" : `Settled: ${outcome ? "YES" : "NO"}`}
-                  </Chip>
-                  {isGeoFenced && (
-                    <Chip
-                      icon="map-marker"
-                      style={inGeo ? styles.chipOk : styles.chipBad}
+            <View key={id} style={styles.marketBlock}>
+              <T variant="title" tone="primary">
+                {m.account.question}
+              </T>
+
+              <View style={styles.statusRow}>
+                <StatusSurface
+                  size="sm"
+                  title={open ? "Open" : `Settled · ${outcome ? "YES" : "NO"}`}
+                  iconName={open ? "circle-outline" : "check-circle"}
+                  tone={open ? "neutral" : outcome ? "kelp" : "terra"}
+                  style={styles.statusItem}
+                />
+                {isGeoFenced ? (
+                  <StatusSurface
+                    size="sm"
+                    title={
+                      inGeo
+                        ? `In range (${m.account.geoRadiusM} m)`
+                        : "Out of range"
+                    }
+                    iconName={inGeo ? "map-marker-check" : "map-marker-off"}
+                    tone={inGeo ? "kelp" : "terra"}
+                    style={styles.statusItem}
+                  />
+                ) : null}
+              </View>
+
+              <View style={styles.poolRow}>
+                <PoolStat label="YES pool" value={yesPool} unit="SKR" tone="kelp" />
+                <View style={styles.poolDivider} />
+                <PoolStat label="NO pool" value={noPool} unit="SKR" tone="terra" />
+              </View>
+
+              {open ? (
+                <View style={styles.betBlock}>
+                  <Eyebrow>Stake</Eyebrow>
+                  <AmountChips
+                    value={amount}
+                    onChange={(next) =>
+                      setBetAmounts((p) => ({ ...p, [id]: next }))
+                    }
+                    style={styles.amountChips}
+                  />
+                  <BetButtons
+                    yesPool={yesPool}
+                    noPool={noPool}
+                    selected={selected}
+                    disabled={betDisabled}
+                    loading={pendingHere}
+                    onSelect={(side) =>
+                      setSelectedSides((p) => ({ ...p, [id]: side }))
+                    }
+                    onConfirm={(side) => onPlaceBet(m, side)}
+                    style={styles.betButtons}
+                  />
+                  {!verified ? (
+                    <T
+                      variant="numericCaption"
+                      tone="tertiary"
+                      style={styles.betHint}
                     >
-                      {inGeo ? `In range (${m.account.geoRadiusM}m)` : "Out of range"}
-                    </Chip>
-                  )}
+                      verify on the Verify tab to bet
+                    </T>
+                  ) : !inGeo ? (
+                    <T
+                      variant="numericCaption"
+                      tone="tertiary"
+                      style={styles.betHint}
+                    >
+                      bets open within {m.account.geoRadiusM} m of the venue
+                    </T>
+                  ) : selected ? (
+                    <T variant="numericCaption" tone="amber" style={styles.betHint}>
+                      tap {selected.toUpperCase()} again to confirm · place_bet
+                    </T>
+                  ) : null}
                 </View>
-                <Text variant="bodySmall" style={{ marginTop: 8 }}>
-                  YES pool: {lamportsToSol(m.account.yesLamports).toFixed(4)} SKR
-                  · NO pool: {lamportsToSol(m.account.noLamports).toFixed(4)} SKR
-                </Text>
-                {open && (
-                  <>
-                    <TextInput
-                      style={styles.input}
-                      placeholder="Amount in SKR (e.g. 0.1)"
-                      placeholderTextColor="#888"
-                      keyboardType="decimal-pad"
-                      value={betAmounts[id] ?? ""}
-                      onChangeText={(t) =>
-                        setBetAmounts((p) => ({ ...p, [id]: t }))
-                      }
-                    />
-                    <View style={styles.btnRow}>
-                      <Button
-                        mode="contained"
-                        onPress={() => onPlaceBet(m, true)}
-                        disabled={!inGeo || loading}
-                        style={styles.btnYes}
-                      >
-                        YES
-                      </Button>
-                      <Button
-                        mode="contained"
-                        onPress={() => onPlaceBet(m, false)}
-                        disabled={!inGeo || loading}
-                        style={styles.btnNo}
-                      >
-                        NO
-                      </Button>
-                    </View>
-                  </>
-                )}
-                {isWinner && !m.position?.claimed && (
-                  <Chip icon="trophy" style={[styles.chipOk, { marginTop: 12 }]}>
-                    You won {projectedPayout.toFixed(4)} SKR — auto-credited at next epoch
-                  </Chip>
-                )}
-                {m.position?.claimed && (
-                  <Chip icon="cash" style={{ alignSelf: "flex-start", marginTop: 8 }}>
-                    Already credited
-                  </Chip>
-                )}
-              </Card.Content>
-            </Card>
+              ) : null}
+
+              {isWinner && !m.position?.claimed ? (
+                <StatusSurface
+                  eyebrow="You won"
+                  title={`${formatSol(projectedPayout)} SKR`}
+                  subtitle="Auto-credited at next epoch."
+                  iconName="trophy-variant"
+                  tone="amber"
+                  style={styles.wonBlock}
+                />
+              ) : null}
+
+              {m.position?.claimed ? (
+                <StatusSurface
+                  size="sm"
+                  title="Already credited"
+                  iconName="cash-check"
+                  tone="muted"
+                  style={styles.wonBlock}
+                />
+              ) : null}
+            </View>
           );
-        })
-      )}
-    </ScrollView>
+        })}
+      </View>
+    </Screen>
+  );
+}
+
+interface PoolStatProps {
+  label: string;
+  value: string;
+  unit: string;
+  tone: "kelp" | "terra";
+}
+
+function PoolStat({ label, value, unit, tone }: PoolStatProps) {
+  return (
+    <View style={styles.poolStat}>
+      <Eyebrow tone={tone}>{label}</Eyebrow>
+      <View style={styles.poolValueRow}>
+        <T variant="numericTitle" tone="primary">
+          {value}
+        </T>
+        <T variant="numericCaption" tone="tertiary" style={styles.poolUnit}>
+          {unit}
+        </T>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { padding: 16 },
-  empty: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24 },
-  headerRow: {
+  heroWrap: {
+    paddingTop: theme.spacing.sm,
+    paddingBottom: theme.spacing.lg,
+  },
+  marketsHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: theme.spacing.lg,
+    marginBottom: theme.spacing.md,
   },
-  title: { fontWeight: "700" },
-  card: { marginTop: 12 },
-  statusRow: { flexDirection: "row", marginTop: 8, gap: 8, flexWrap: "wrap" },
-  chipOpen: { backgroundColor: "#1f3a4d" },
-  chipSettled: { backgroundColor: "#3a3a3a" },
-  chipOk: { backgroundColor: "#1f4d1f" },
-  chipBad: { backgroundColor: "#4d1f1f" },
-  input: {
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: "#222",
-    color: "#fff",
+  list: {
+    gap: theme.spacing.xl,
   },
-  btnRow: { flexDirection: "row", marginTop: 8, gap: 8 },
-  btnYes: { flex: 1, backgroundColor: "#2e7d32" },
-  btnNo: { flex: 1, backgroundColor: "#c62828" },
+  marketBlock: {
+    paddingBottom: theme.spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: theme.border,
+  },
+  statusRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: theme.spacing.sm,
+    marginTop: theme.spacing.md,
+  },
+  statusItem: {
+    flexShrink: 1,
+  },
+  poolRow: {
+    flexDirection: "row",
+    alignItems: "stretch",
+    marginTop: theme.spacing.lg,
+    backgroundColor: theme.bgLifted,
+    borderRadius: theme.radius.sm,
+    padding: theme.spacing.md,
+  },
+  poolDivider: {
+    width: 1,
+    backgroundColor: theme.border,
+    marginHorizontal: theme.spacing.md,
+  },
+  poolStat: {
+    flex: 1,
+  },
+  poolValueRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    marginTop: 2,
+  },
+  poolUnit: {
+    marginLeft: 4,
+  },
+  betBlock: {
+    marginTop: theme.spacing.lg,
+  },
+  amountChips: {
+    marginTop: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  betButtons: {
+    marginTop: theme.spacing.xs,
+  },
+  betHint: {
+    marginTop: theme.spacing.sm,
+    textAlign: "center",
+  },
+  wonBlock: {
+    marginTop: theme.spacing.lg,
+  },
 });

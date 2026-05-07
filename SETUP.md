@@ -1,4 +1,4 @@
-# Pied Piper — Setup (T-X to T-7h checklist)
+# RobinHoodie — Setup (T-X to T-7h checklist)
 
 This is the runbook to take the repo from "scaffolded" → "demoable on your physical Seeker on devnet". Anything you can't run from the assistant session should be run by you in your shell — ideally inside the Claude Code session by prefixing `! ` so the output streams back into the chat.
 
@@ -14,7 +14,7 @@ This is the runbook to take the repo from "scaffolded" → "demoable on your phy
   - `yarn seed --epoch=300` → SGT mint, UbiPool init, 2 SOL pre-fund, 2 demo markets ✅
   - `yarn settle --marketId=… --outcome=true` ✅
 - IDL + generated TS types (`PredictionMarket`) copied into `app/piedpiper-app/src/{idl,types}/`
-- First commit done (`7cd4d0b chore: scaffold Pied Piper hackathon prototype`)
+- First commit done (`7cd4d0b chore: scaffold RobinHoodie hackathon prototype`)
 
 **Toolchain installed**
 - `yarn`, `eas-cli`, `expo`, `adb`, `openjdk@17` (at `/opt/homebrew/opt/openjdk@17`)

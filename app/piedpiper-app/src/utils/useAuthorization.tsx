@@ -97,7 +97,7 @@ async function persistAuthorization(
 }
 
 export const APP_IDENTITY = {
-  name: "Pied Piper",
+  name: "RobinHoodie",
   uri: "https://piedpiper.app",
 };
 

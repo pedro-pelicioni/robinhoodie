@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Pied Piper",
+    "name": "RobinHoodie",
     "slug": "piedpiper",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -33,7 +33,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow Pied Piper to use your location for geo-fenced markets."
+          "locationAlwaysAndWhenInUsePermission": "Allow RobinHoodie to use your location for geo-fenced markets."
         }
       ]
     ],

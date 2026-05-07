@@ -1,74 +1,71 @@
-import { transact } from "@solana-mobile/mobile-wallet-adapter-protocol";
-import { useState, useCallback } from "react";
-import { Button } from "react-native-paper";
+import { useCallback, useState } from "react";
+
+import { PrimaryButton } from "../primitives/PrimaryButton";
+import { GhostButton } from "../primitives/GhostButton";
 import { alertAndLog } from "../../utils/alertAndLog";
 import { useAuthorization } from "../../utils/useAuthorization";
 import { useMobileWallet } from "../../utils/useMobileWallet";
 
 export function ConnectButton() {
-  const { authorizeSession } = useAuthorization();
+  useAuthorization();
   const { connect } = useMobileWallet();
-  const [authorizationInProgress, setAuthorizationInProgress] = useState(false);
-  const handleConnectPress = useCallback(async () => {
+  const [busy, setBusy] = useState(false);
+
+  const onPress = useCallback(async () => {
+    if (busy) return;
+    setBusy(true);
     try {
-      if (authorizationInProgress) {
-        return;
-      }
-      setAuthorizationInProgress(true);
       await connect();
-    } catch (err: any) {
+    } catch (err: unknown) {
       alertAndLog(
         "Error during connect",
-        err instanceof Error ? err.message : err
+        err instanceof Error ? err.message : String(err),
       );
     } finally {
-      setAuthorizationInProgress(false);
+      setBusy(false);
     }
-  }, [authorizationInProgress, authorizeSession]);
+  }, [busy, connect]);
+
   return (
-    <Button
-      mode="contained"
-      disabled={authorizationInProgress}
-      onPress={handleConnectPress}
-      style={{ flex: 1 }}
-    >
-      Connect
-    </Button>
+    <PrimaryButton
+      label="Connect wallet"
+      onPress={onPress}
+      loading={busy}
+      disabled={busy}
+    />
   );
 }
 
 export function SignInButton() {
-  const { authorizeSession } = useAuthorization();
+  useAuthorization();
   const { signIn } = useMobileWallet();
-  const [signInInProgress, setSignInInProgress] = useState(false);
-  const handleConnectPress = useCallback(async () => {
+  const [busy, setBusy] = useState(false);
+
+  const onPress = useCallback(async () => {
+    if (busy) return;
+    setBusy(true);
     try {
-      if (signInInProgress) {
-        return;
-      }
-      setSignInInProgress(true);
       await signIn({
-        domain: "yourdomain.com",
-        statement: "Sign into Expo Template App",
-        uri: "https://yourdomain.com",
+        domain: "piedpiper.app",
+        statement: "Sign in to RobinHoodie",
+        uri: "https://piedpiper.app",
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       alertAndLog(
         "Error during sign in",
-        err instanceof Error ? err.message : err
+        err instanceof Error ? err.message : String(err),
       );
     } finally {
-      setSignInInProgress(false);
+      setBusy(false);
     }
-  }, [signInInProgress, authorizeSession]);
+  }, [busy, signIn]);
+
   return (
-    <Button
-      mode="outlined"
-      disabled={signInInProgress}
-      onPress={handleConnectPress}
-      style={{ marginLeft: 4, flex: 1 }}
-    >
-      Sign in
-    </Button>
+    <GhostButton
+      label="Sign in"
+      onPress={onPress}
+      loading={busy}
+      disabled={busy}
+    />
   );
 }

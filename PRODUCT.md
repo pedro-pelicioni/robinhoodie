@@ -19,7 +19,7 @@ The job to be done on any single screen is small and well-defined: *verify that 
 
 A mobile-first prediction market on Solana whose 2 % trading fees stream as Universal Basic Income to verified humans, where personhood is proven cryptographically by Seeker hardware ownership plus a biometric Seed Vault signature.
 
-The product also exposes itself outward through `@piedpiper/sdk` and a Solana Attestation Service issuer credential, so that any other Solana app, payroll script, or treasury bot can both donate to the same UBI pool ("welfare companies as a primitive") and consume Pied Piper personhood without integrating the IDL.
+The product also exposes itself outward through `@piedpiper/sdk` and a Solana Attestation Service issuer credential, so that any other Solana app, payroll script, or treasury bot can both donate to the same UBI pool ("welfare companies as a primitive") and consume RobinHoodie personhood without integrating the IDL.
 
 Success is when the app feels less like "another Solana dApp" and more like a piece of the Seeker — when the fee → UBI loop, the biometric gate, and the live home-screen widget combine into something that could not exist on any other phone.
 
@@ -34,7 +34,7 @@ Emotionally the product should evoke **immediacy** (the biometric prompt is the 
 ## Anti-references
 
 - **Stock Material Design 3 / react-native-paper defaults.** The current scaffold inherits MD3 surfaces, neutral purples, and Android chip styling. Any screen that still reads as "default Material" has failed.
-- **SaaS-cream landing pages.** Off-white backgrounds, Inter, soft drop shadows, gradient blob heroes, three-column feature cards — the YC-startup template. Pied Piper is not a SaaS company; it is a piece of mobile hardware software.
+- **SaaS-cream landing pages.** Off-white backgrounds, Inter, soft drop shadows, gradient blob heroes, three-column feature cards — the YC-startup template. RobinHoodie is not a SaaS company; it is a piece of mobile hardware software.
 - **Crypto-casino / degen aesthetic.** Neon-green-on-black, candy gradients, animated coin glyphs, Pump.fun hype copy. Bold ≠ degen-neon, and a UBI-funded prediction market cannot read as a casino skin without contradicting its own thesis.
 - **Polymarket clone.** White + blue + percentage-bar chart language. Different category, different commitments; do not borrow it by reflex.
 

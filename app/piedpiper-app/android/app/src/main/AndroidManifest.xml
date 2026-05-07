@@ -33,7 +33,7 @@
     <receiver
         android:name="com.piedpiper.widget.PiedPiperWidgetReceiver"
         android:exported="true"
-        android:label="Pied Piper UBI">
+        android:label="RobinHoodie UBI">
       <intent-filter>
         <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
       </intent-filter>

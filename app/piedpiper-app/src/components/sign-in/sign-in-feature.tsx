@@ -1,20 +1,20 @@
-import { View, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
+
+import { theme } from "../../theme/tokens";
 import { ConnectButton, SignInButton } from "./sign-in-ui";
 
 export function SignInFeature() {
   return (
-    <>
-      <View style={styles.buttonGroup}>
-        <ConnectButton />
-        <SignInButton />
-      </View>
-    </>
+    <View style={styles.group}>
+      <ConnectButton />
+      <SignInButton />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  buttonGroup: {
-    marginTop: 16,
-    flexDirection: "row",
+  group: {
+    marginTop: theme.spacing.lg,
+    gap: theme.spacing.sm,
   },
 });

@@ -1,5 +1,5 @@
 /**
- * @piedpiper/sdk — donate to the Pied Piper UBI pool.
+ * @piedpiper/sdk — donate to the RobinHoodie UBI pool.
  *
  * Designed for B2B "welfare contributor" integrations. A payroll script,
  * a CSR initiative, or another dApp can send SOL to the UbiPool with an
@@ -30,7 +30,7 @@ export const DEFAULT_PROGRAM_ID = new PublicKey(
 );
 
 /**
- * Pied Piper's published Solana Attestation Service (SAS) anchor —
+ * RobinHoodie's published Solana Attestation Service (SAS) anchor —
  * any Solana app can verify a user's personhood by deriving the attestation
  * PDA from these and calling `findPiedPiperPersonhood`.
  *
@@ -178,10 +178,10 @@ export class PiedPiperClient {
   }
 
   /**
-   * Verify a user's personhood via Pied Piper's published SAS attestation.
+   * Verify a user's personhood via RobinHoodie's published SAS attestation.
    *
    * This is the **interop primitive**: any Solana dApp can call this to check
-   * "is this wallet a Pied Piper-attested human?" without needing to integrate
+   * "is this wallet a RobinHoodie-attested human?" without needing to integrate
    * the prediction_market IDL. Returns null if no attestation exists for that
    * wallet.
    *

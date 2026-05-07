@@ -1,17 +1,17 @@
 <!-- SEED: re-run /impeccable document once components are built to capture real tokens, sidecar, and component snippets. -->
 
 ---
-name: Pied Piper
+name: RobinHoodie
 description: A Seeker-hardware-native prediction market whose 2 % fees stream as UBI to verified humans.
 ---
 
-# Design System: Pied Piper
+# Design System: RobinHoodie
 
 ## 1. Overview
 
 **Creative North Star: "The Hardware Marquee"**
 
-Pied Piper looks like a piece of the Seeker, not a generic dApp dropped onto Android. The aesthetic borrows from money-app boldness (Cash App's monolithic single-color screen, early Robinhood's hyper-confident state pages) and from the hardware itself (Seeker stock UI, Solana Saga's hardware-as-canvas posture). Picture a backlit transit marquee, a digital ticker on a railway platform, a treasury terminal: amber values burning on a near-black surface, every number stated as a fact, no decoration competing with the value being shown.
+RobinHoodie looks like a piece of the Seeker, not a generic dApp dropped onto Android. The aesthetic borrows from money-app boldness (Cash App's monolithic single-color screen, early Robinhood's hyper-confident state pages) and from the hardware itself (Seeker stock UI, Solana Saga's hardware-as-canvas posture). Picture a backlit transit marquee, a digital ticker on a railway platform, a treasury terminal: amber values burning on a near-black surface, every number stated as a fact, no decoration competing with the value being shown.
 
 The system is **dark-first** for an honest reason: the user is a Seeker holder in transit, glancing one-handed at an OLED in evening light to see whether their UBI claim posted. Light theme exists for accessibility and for situations where the device is propped on a desk, but the canonical surface is dark. **Color strategy is Committed**: a single deep amber carries 30 to 60 % of any meaningful screen, and it carries one meaning only, value. **Typography is single-technical-sans plus tabular mono for numerics**, because every screen has at least one number that must read as a fact, not jitter as it updates. **Motion is responsive**: state changes, feedback, biometric pulse, pool counter ticks. No orchestrated entrances, no scroll choreography, no decorative motion.
 
@@ -68,7 +68,7 @@ A near-symmetric inversion: Ash Bone becomes background, Ash Graphite becomes te
 
 **The Amber Rule.** Signal Amber represents value. The pool balance, the primary action, the verified state, the won-bet trophy. If amber appears anywhere it is not stating a value, the design is wrong. No amber decoration, no amber dividers, no amber icon fills outside a value context.
 
-**The No-Black Rule.** No `#000000`. No `#ffffff`. Every neutral is tinted toward amber at chroma ≈ 0.005 to 0.008. A Pied Piper "black" is amber-tinted Ash Coal; a Pied Piper "white" is warm Ash Bone.
+**The No-Black Rule.** No `#000000`. No `#ffffff`. Every neutral is tinted toward amber at chroma ≈ 0.005 to 0.008. A RobinHoodie "black" is amber-tinted Ash Coal; a RobinHoodie "white" is warm Ash Bone.
 
 **The State-Is-Information Rule.** Kelp, Terra, and Error never appear as decoration. Each one means a specific thing: outcome, declined, failed. If a screen has a kelp accent that does not stand for "this resolved YES," delete it.
 
@@ -100,7 +100,7 @@ A near-symmetric inversion: Ash Bone becomes background, Ash Graphite becomes te
 
 ## 4. Elevation
 
-Pied Piper does not use shadows. The system is **flat with tonal layering**: depth comes from a small set of progressively-lifted neutrals (Ash Coal, Ash Graphite, Ash Charcoal) rather than from drop-shadows or blur. Modal sheets and elevated surfaces shift one tonal step warmer; they do not float on a shadow.
+RobinHoodie does not use shadows. The system is **flat with tonal layering**: depth comes from a small set of progressively-lifted neutrals (Ash Coal, Ash Graphite, Ash Charcoal) rather than from drop-shadows or blur. Modal sheets and elevated surfaces shift one tonal step warmer; they do not float on a shadow.
 
 The two reasons: shadows on a near-black surface look muddy at best and Material at worst; and tonal layering reads correctly under the dark-first OLED context where shadows fight the panel's own black point.
 
