@@ -124,7 +124,8 @@ async function main() {
     [Buffer.from("market"), marketId.toArrayLike(Buffer, "le", 8)],
     program.programId,
   )[0];
-  const endTs = new BN(Math.floor(Date.now() / 1000) + 30 * 60);
+  // 24h window so demos late in the day still find the market open.
+  const endTs = new BN(Math.floor(Date.now() / 1000) + 24 * 60 * 60);
   await program.methods
     .createMarket(marketId, "Will BTC > $100k by EOD?", endTs, new BN(0), 0)
     .accountsStrict({

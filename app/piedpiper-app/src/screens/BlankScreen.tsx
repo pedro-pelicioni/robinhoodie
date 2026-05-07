@@ -8,28 +8,32 @@ import {
 } from "react-native";
 import { Button, Card, Chip, Divider, Text } from "react-native-paper";
 import * as Location from "expo-location";
-import BN from "bn.js";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
+// bs58 is a transitive dep of @solana/web3.js; no @types/bs58 ships.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const bs58 = require("bs58") as { encode(b: Uint8Array): string };
 
 import { useAuthorization } from "../utils/useAuthorization";
 import { useMobileWallet } from "../utils/useMobileWallet";
 import { useConnection } from "../utils/ConnectionProvider";
-import { getProgram } from "../utils/program";
 import { positionPda, verificationPda } from "../utils/pdas";
+import { PROGRAM_ID } from "../utils/config";
 import {
-  buildClaimUbiTx,
-  buildClaimWinningsTx,
-  buildPlaceBetTx,
-} from "../utils/txs";
+  ACCOUNT_DISC,
+  type Market,
+  type Position,
+  decodeMarket,
+  decodePosition,
+} from "../utils/codec";
+import { buildClaimUbiTx, buildPlaceBetTx } from "../utils/txs";
 import { alertAndLog } from "../utils/alertAndLog";
 import { ellipsify } from "../utils/ellipsify";
 import { VENUE_GEO } from "../utils/config";
 
 interface MarketView {
-  account: any;
-  publicKey: any;
-  marketId: BN;
-  position?: any;
+  account: Market;
+  publicKey: PublicKey;
+  position?: Position;
 }
 
 function haversineMeters(
@@ -48,6 +52,10 @@ function haversineMeters(
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
+function lamportsToSol(lamports: bigint): number {
+  return Number(lamports) / LAMPORTS_PER_SOL;
+}
+
 export default function BlankScreen() {
   const { selectedAccount } = useAuthorization();
   const { signAndSendTransaction } = useMobileWallet();
@@ -62,32 +70,42 @@ export default function BlankScreen() {
     if (!selectedAccount) return;
     setLoading(true);
     try {
-      const program = getProgram(connection, selectedAccount.publicKey);
-      const all = (await program.account.market.all()) as any[];
-      const enriched: MarketView[] = await Promise.all(
-        all.map(async (m) => {
-          const view: MarketView = {
-            account: m.account,
-            publicKey: m.publicKey,
-            marketId: m.account.marketId as BN,
-          };
-          try {
-            view.position = await program.account.position.fetch(
-              positionPda(m.publicKey, selectedAccount.publicKey),
-            );
-          } catch {
-            // no position yet
-          }
-          return view;
-        }),
-      );
+      // Fetch all program accounts whose first 8 bytes match the Market
+      // discriminator. Filter pushes the work to the RPC node.
+      const raw = await connection.getProgramAccounts(PROGRAM_ID, {
+        filters: [
+          {
+            memcmp: {
+              offset: 0,
+              bytes: bs58.encode(ACCOUNT_DISC.Market),
+            },
+          },
+        ],
+      });
+      const enriched: MarketView[] = [];
+      for (const { pubkey, account } of raw) {
+        const m = decodeMarket(new Uint8Array(account.data));
+        if (!m) continue;
+        const view: MarketView = { account: m, publicKey: pubkey };
+        const posInfo = await connection.getAccountInfo(
+          positionPda(pubkey, selectedAccount.publicKey),
+          "confirmed",
+        );
+        if (posInfo) {
+          const pos = decodePosition(new Uint8Array(posInfo.data));
+          if (pos) view.position = pos;
+        }
+        enriched.push(view);
+      }
       enriched.sort((a, b) => a.account.status - b.account.status);
       setMarkets(enriched);
+
       const v = await connection.getAccountInfo(
         verificationPda(selectedAccount.publicKey),
       );
       setVerified(v !== null);
     } catch (e: any) {
+      console.error("Refresh markets failed:", e?.message ?? e);
       alertAndLog("Refresh markets failed", e?.message ?? String(e));
     } finally {
       setLoading(false);
@@ -111,10 +129,10 @@ export default function BlankScreen() {
   }, []);
 
   const inRange = useCallback(
-    (geoH3: BN, radiusM: number): boolean => {
-      // The on-chain `geo_h3 != 0` is a marker that this is a geo-fenced market;
-      // we resolve to the canonical demo center (`VENUE_GEO`) off-chain.
-      if (geoH3.eqn(0) || radiusM === 0) return true;
+    (geoH3: bigint, radiusM: number): boolean => {
+      // `geo_h3 != 0` is our marker for "geo-fenced"; we resolve to the canonical
+      // demo center (`VENUE_GEO`) off-chain.
+      if (geoH3 === 0n || radiusM === 0) return true;
       if (!coords) return false;
       return (
         haversineMeters(coords.lat, coords.lon, VENUE_GEO.lat, VENUE_GEO.lon) <=
@@ -127,9 +145,11 @@ export default function BlankScreen() {
   const onPlaceBet = useCallback(
     async (m: MarketView, side: boolean) => {
       if (!selectedAccount) return;
-      const raw = betAmounts[m.marketId.toString()] ?? "0.1";
-      const amount = new BN(Math.floor(parseFloat(raw) * LAMPORTS_PER_SOL));
-      if (amount.lten(0)) {
+      const raw = betAmounts[m.account.marketId.toString()] ?? "0.1";
+      const amountLamports = BigInt(
+        Math.floor(parseFloat(raw) * LAMPORTS_PER_SOL),
+      );
+      if (amountLamports <= 0n) {
         alertAndLog("Invalid amount", "Enter a positive SOL amount");
         return;
       }
@@ -138,9 +158,9 @@ export default function BlankScreen() {
         const tx = await buildPlaceBetTx(
           connection,
           selectedAccount.publicKey,
-          m.marketId,
+          m.account.marketId,
           side,
-          amount,
+          amountLamports,
         );
         const sig = await signAndSendTransaction(tx, await connection.getSlot());
         await connection.confirmTransaction(sig, "confirmed");
@@ -153,29 +173,6 @@ export default function BlankScreen() {
       }
     },
     [selectedAccount, connection, betAmounts, signAndSendTransaction, refresh],
-  );
-
-  const onClaimWinnings = useCallback(
-    async (m: MarketView) => {
-      if (!selectedAccount) return;
-      setLoading(true);
-      try {
-        const tx = await buildClaimWinningsTx(
-          connection,
-          selectedAccount.publicKey,
-          m.marketId,
-        );
-        const sig = await signAndSendTransaction(tx, await connection.getSlot());
-        await connection.confirmTransaction(sig, "confirmed");
-        alertAndLog("Winnings claimed", ellipsify(sig));
-        await refresh();
-      } catch (e: any) {
-        alertAndLog("Claim failed", e?.message ?? String(e));
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedAccount, connection, signAndSendTransaction, refresh],
   );
 
   const onClaimUbi = useCallback(async () => {
@@ -238,22 +235,26 @@ export default function BlankScreen() {
         <Text>No markets yet. Run `yarn seed` from the repo root.</Text>
       ) : (
         markets.map((m) => {
-          const id = m.marketId.toString();
-          const geoH3 = m.account.geoH3 as BN;
-          const radiusM = (m.account.geoRadiusM as number) ?? 0;
+          const id = m.account.marketId.toString();
           const open = m.account.status === 0;
           const settled = m.account.status === 1;
-          const outcome: boolean = m.account.outcome;
-          const yes = (m.account.yesLamports as BN).toString();
-          const no = (m.account.noLamports as BN).toString();
-          const inGeo = inRange(geoH3, radiusM);
+          const outcome = m.account.outcome;
+          const inGeo = inRange(m.account.geoH3, m.account.geoRadiusM);
+          // We only show whether the user won (or already cashed out) — winnings
+          // are batch-distributed by a back-end cron, not a per-market button.
           const winningSideStake = m.position
             ? outcome
-              ? (m.position.yesLamports as BN)
-              : (m.position.noLamports as BN)
-            : new BN(0);
-          const canClaimWinnings =
-            settled && !m.position?.claimed && winningSideStake.gt(new BN(0));
+              ? m.position.yesLamports
+              : m.position.noLamports
+            : 0n;
+          const isWinner = settled && winningSideStake > 0n;
+          const totalPool = m.account.yesLamports + m.account.noLamports;
+          const winningPool = outcome ? m.account.yesLamports : m.account.noLamports;
+          const projectedPayout =
+            isWinner && winningPool > 0n
+              ? lamportsToSol((winningSideStake * totalPool) / winningPool)
+              : 0;
+          const isGeoFenced = m.account.geoH3 !== 0n;
           return (
             <Card key={id} style={styles.card}>
               <Card.Content>
@@ -265,18 +266,18 @@ export default function BlankScreen() {
                   >
                     {open ? "Open" : `Settled: ${outcome ? "YES" : "NO"}`}
                   </Chip>
-                  {!geoH3.eqn(0) && (
+                  {isGeoFenced && (
                     <Chip
                       icon="map-marker"
                       style={inGeo ? styles.chipOk : styles.chipBad}
                     >
-                      {inGeo ? `In range (${radiusM}m)` : "Out of range"}
+                      {inGeo ? `In range (${m.account.geoRadiusM}m)` : "Out of range"}
                     </Chip>
                   )}
                 </View>
                 <Text variant="bodySmall" style={{ marginTop: 8 }}>
-                  YES pool: {(parseInt(yes) / LAMPORTS_PER_SOL).toFixed(4)} SOL ·
-                  NO pool: {(parseInt(no) / LAMPORTS_PER_SOL).toFixed(4)} SOL
+                  YES pool: {lamportsToSol(m.account.yesLamports).toFixed(4)} SOL
+                  · NO pool: {lamportsToSol(m.account.noLamports).toFixed(4)} SOL
                 </Text>
                 {open && (
                   <>
@@ -310,18 +311,14 @@ export default function BlankScreen() {
                     </View>
                   </>
                 )}
-                {canClaimWinnings && (
-                  <Button
-                    mode="contained-tonal"
-                    onPress={() => onClaimWinnings(m)}
-                    style={{ marginTop: 12 }}
-                  >
-                    Claim Winnings
-                  </Button>
+                {isWinner && !m.position?.claimed && (
+                  <Chip icon="trophy" style={[styles.chipOk, { marginTop: 12 }]}>
+                    You won {projectedPayout.toFixed(4)} SOL — auto-credited at next epoch
+                  </Chip>
                 )}
                 {m.position?.claimed && (
                   <Chip icon="cash" style={{ alignSelf: "flex-start", marginTop: 8 }}>
-                    Already claimed
+                    Already credited
                   </Chip>
                 )}
               </Card.Content>

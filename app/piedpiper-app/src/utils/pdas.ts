@@ -1,6 +1,13 @@
 import { PublicKey } from "@solana/web3.js";
-import BN from "bn.js";
 import { PROGRAM_ID } from "./config";
+
+function u64LE(value: bigint): Buffer {
+  const buf = Buffer.alloc(8);
+  for (let i = 0; i < 8; i++) {
+    buf[i] = Number((value >> BigInt(8 * i)) & 0xffn);
+  }
+  return buf;
+}
 
 export function ubiPoolPda(): PublicKey {
   return PublicKey.findProgramAddressSync(
@@ -9,9 +16,9 @@ export function ubiPoolPda(): PublicKey {
   )[0];
 }
 
-export function marketPda(marketId: BN): PublicKey {
+export function marketPda(marketId: bigint): PublicKey {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from("market"), marketId.toArrayLike(Buffer, "le", 8)],
+    [Buffer.from("market"), u64LE(marketId)],
     PROGRAM_ID,
   )[0];
 }

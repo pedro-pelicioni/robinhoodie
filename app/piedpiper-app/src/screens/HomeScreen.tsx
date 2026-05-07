@@ -8,7 +8,6 @@ import { useConnection } from "../utils/ConnectionProvider";
 import { SignInFeature } from "../components/sign-in/sign-in-feature";
 import { ellipsify } from "../utils/ellipsify";
 import { fetchConfiguredSgtMint, userHasSgt, type SgtStatus } from "../utils/sgt";
-import { getProgram } from "../utils/program";
 import { ubiPoolPda, verificationPda } from "../utils/pdas";
 import { buildRegisterVerificationTx } from "../utils/txs";
 import { alertAndLog } from "../utils/alertAndLog";
@@ -33,8 +32,7 @@ export function HomeScreen() {
     setLoading(true);
     setPoolMissing(false);
     try {
-      const program = getProgram(connection, selectedAccount.publicKey);
-      const sgtMint = await fetchConfiguredSgtMint(program, ubiPoolPda());
+      const sgtMint = await fetchConfiguredSgtMint(connection, ubiPoolPda());
       if (!sgtMint) {
         setPoolMissing(true);
         setStatus(null);
