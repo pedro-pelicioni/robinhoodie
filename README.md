@@ -16,10 +16,14 @@ The app cannot run without a Seeker. Personhood is gated on on-chain ownership o
 > **A note on the currency labels.** The app + widget present every amount as **SKR** (Solana Mobile's native token, which is what the prediction-market product would actually denominate in for ecosystem alignment). On devnet today the value flowing under the hood is still SOL — every "0.1 SKR" the user sees corresponds to 0.1 SOL on-chain. The swap to a real SKR SPL transfer (`@solana/spl-token`'s `transfer` instead of `system_program::transfer`) is a single-instruction program change documented in the v0.2 plan; the UI is already SKR-clean.
 
 <p align="center">
-  <a href="media/pitch.mp4"><img src="media/pitch_thumb.jpg" alt="2-minute pitch — click to play" width="320" /></a>
+  <a href="https://github.com/pedro-pelicioni/robinhoodie/raw/main/media/pitch.mp4" download="robinhoodie-pitch.mp4"><img src="media/pitch_thumb.jpg" alt="Click to download the 2-minute pitch" width="320" /></a>
 </p>
 
-<p align="center"><sub>📹 <a href="media/pitch.mp4">2-minute pitch (mp4)</a> — what RobinHoodie is and why Seeker is the hard requirement.</sub></p>
+<h2 align="center">
+  📹 <a href="https://github.com/pedro-pelicioni/robinhoodie/raw/main/media/pitch.mp4" download="robinhoodie-pitch.mp4">▶ DOWNLOAD THE 2-MINUTE PITCH VIDEO (4 MB MP4)</a>
+</h2>
+
+<p align="center"><b>Judges — start here.</b> What RobinHoodie is, why a Seeker is the hard requirement, and the live devnet flow end-to-end.</p>
 
 | | | |
 | :---: | :---: | :---: |
