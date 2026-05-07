@@ -1,0 +1,47 @@
+# Anchor / Rust
+target/
+**/*.rs.bk
+.anchor/
+test-ledger/
+
+# Node
+node_modules/
+.yarn/cache/
+.yarn/install-state.gz
+.pnp.*
+yarn-error.log
+npm-debug.log*
+
+# Expo / React Native
+.expo/
+.expo-shared/
+dist/
+web-build/
+*.tsbuildinfo
+android/build
+ios/build
+
+# Native build artifacts
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.DS_Store
+
+# Solana
+**/wallet-keypair.json
+
+# Logs
+*.log
+logs/

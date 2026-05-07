@@ -1,0 +1,19 @@
+[features]
+seeds = false
+skip-lint = false
+
+[programs.localnet]
+prediction_market = "6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K"
+
+[programs.devnet]
+prediction_market = "6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "Localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
