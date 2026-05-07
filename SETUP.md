@@ -3,15 +3,30 @@
 This is the runbook to take the repo from "scaffolded" → "demoable on your physical Seeker on devnet". Anything you can't run from the assistant session should be run by you in your shell — ideally inside the Claude Code session by prefixing `! ` so the output streams back into the chat.
 
 ## 0. Already done in the assistant session
+
+**Code & tests**
 - All program / app / scripts / tests / README written
-- Toolchain installed: `yarn`, `eas-cli`, `expo`, `solana-cli` (Agave 3.1.14), `anchor-cli` (0.31.1), `adb`, `openjdk@17`
-- Solana CLI configured for **devnet** with a fresh keypair: `~/.config/solana/id.json` (address: `solana address` to print)
-- Generated **program keypair** at `target/deploy/prediction_market-keypair.json` — program ID **`6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K`** is wired into:
-  - `programs/prediction_market/src/lib.rs` `declare_id!`
-  - `Anchor.toml` (localnet + devnet)
-  - `app/piedpiper-app/src/utils/config.ts`
-  - `app/piedpiper-app/src/idl/prediction_market.json` (placeholder until first build)
-- Both `package.json`s have `yarn install` complete (root + `app/piedpiper-app`)
+- `anchor build` ✅ — `target/deploy/prediction_market.so` (337 KB) and `target/idl/prediction_market.json` generated
+- **`anchor test` ✅ — 6 / 6 passing** (incl. cross-epoch UBI claim + double-claim rejection, 72 s total)
+- `npx tsc --noEmit` in `app/piedpiper-app/` ✅ — clean
+- End-to-end **localnet** smoke test of the full chain:
+  - `solana-test-validator` with our program preloaded
+  - `yarn seed --epoch=300` → SGT mint, UbiPool init, 2 SOL pre-fund, 2 demo markets ✅
+  - `yarn settle --marketId=… --outcome=true` ✅
+- IDL + generated TS types (`PredictionMarket`) copied into `app/piedpiper-app/src/{idl,types}/`
+- First commit done (`7cd4d0b chore: scaffold Pied Piper hackathon prototype`)
+
+**Toolchain installed**
+- `yarn`, `eas-cli`, `expo`, `adb`, `openjdk@17` (at `/opt/homebrew/opt/openjdk@17`)
+- `anchor-cli` 0.31.1 (at `~/.cargo/bin/anchor`)
+- `solana-cli` Agave 3.1.14 + `cargo-build-sbf` + `platform-tools v1.52` at `~/.local/share/solana/install/active_release/bin/` — **add this to your `$PATH`** (the brew-installed `solana` is missing `cargo-build-sbf`; the Anza one wins)
+- Solana CLI configured for **devnet**, dev keypair at `~/.config/solana/id.json`, address **`58UM4CdJVF489o89LMWpuboN2wv4oy1RhNQcWWVdu4JW`** (currently 0 SOL — devnet faucet rate-limited my IP for the day)
+
+**Wired program ID** **`6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K`** — keypair at `target/deploy/prediction_market-keypair.json`, referenced from:
+- `programs/prediction_market/src/lib.rs` `declare_id!`
+- `Anchor.toml` (localnet + devnet)
+- `app/piedpiper-app/src/utils/config.ts`
+- `app/piedpiper-app/src/idl/prediction_market.json` `address` (and the generated TS types)
 
 ## 1. Install Solana platform-tools (BLOCKED IN ASSISTANT SESSION — RUN YOURSELF)
 
@@ -39,34 +54,24 @@ Alternative if the installer is unreachable: download `platform-tools-osx-aarch6
 
 Add to `~/.zshrc` so EAS local builds pick it up later.
 
-## 3. Get devnet SOL (airdrop is rate-limited right now)
+## 3. Get devnet SOL (the assistant's IP is faucet-locked for the day)
 
 ```bash
-! solana address                           # print your dev wallet pubkey
-! solana airdrop 2                         # try; may say rate-limited
+! solana address       # → 58UM4CdJVF489o89LMWpuboN2wv4oy1RhNQcWWVdu4JW
 ```
 
-If airdrop fails, paste the address into <https://faucet.solana.com> and request 2 SOL there.
-
-## 4. Build the program
+Open <https://faucet.solana.com> in your browser, paste the address, request **2 SOL** (you'll need ~1.7 for program rent + a buffer for transactions).
 
 ```bash
-! anchor build
+! solana balance       # confirm ≥ 2 SOL before deploying
 ```
 
-After build, **copy the freshly generated IDL into the app**:
+## 4. Build the program (already done; rebuild if you change Rust)
 
 ```bash
-! cp target/idl/prediction_market.json app/piedpiper-app/src/idl/prediction_market.json
+! yarn build       # = anchor build && yarn prepare:app  (re-copies IDL into app)
+! anchor test      # 6/6 passing already, ~72 s
 ```
-
-Run the program tests against a local validator (sanity check):
-
-```bash
-! anchor test
-```
-
-(The test takes ~1.5 min — it deliberately waits 65s to advance an epoch boundary. If tests hit IDL/bn type warnings, ignore — only RPC errors matter.)
 
 ## 5. Deploy to devnet
 
@@ -74,7 +79,7 @@ Run the program tests against a local validator (sanity check):
 ! anchor deploy --provider.cluster devnet
 ```
 
-Expect this to spend ~1.5–2.5 SOL on rent (program is ~250 KB on disk; rent ≈ size × 0.00696 / KB).
+Expect ~1.7 SOL spent on program rent. Note the printed program ID matches the keypair — should be `6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K`.
 
 ## 6. Connect your Seeker via USB and seed devnet for it
 
@@ -87,10 +92,24 @@ On the Seeker: enable Developer Options + USB debugging, plug into the Mac, acce
 Open the Seed Vault Wallet on Seeker, copy its pubkey (long-press the address → copy). Then:
 
 ```bash
-! yarn seed -- --seekerPubkey=<paste-the-base58-here> --epoch=300
+! ANCHOR_PROVIDER_URL=https://api.devnet.solana.com \
+  ANCHOR_WALLET=$HOME/.config/solana/id.json \
+  yarn seed --seekerPubkey=<paste-the-base58-here> --epoch=300
 ```
 
-This prints a JSON summary at the bottom — copy the values you'll need for the README badges (Mock SGT mint, UbiPool PDA, demo Market PDA).
+This prints a JSON summary at the bottom — copy the values into the README badges (Mock SGT mint, UbiPool PDA, both demo Market PDAs). For reference, on a localnet smoke test the seed produced output like:
+
+```json
+{
+  "programId": "6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K",
+  "sgtMint": "5di5…cgABq",
+  "ubiPool": "2A36…YDiLS",
+  "market": "6XkQ…YsSco",
+  "geoMarket": "4cQQ…nWXz",
+  "seeker": "58UM…u4JW",
+  "epochSeconds": 300
+}
+```
 
 ## 7. Pre-fund the Seeker wallet with devnet SOL
 
