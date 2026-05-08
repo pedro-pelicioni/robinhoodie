@@ -30,7 +30,7 @@ The app cannot run without a Seeker. Personhood is gated on on-chain ownership o
 | ![Verify screen](media/01_verify.png) | ![Markets screen](media/02_markets.png) | ![Settled win](media/03_settled.png) |
 | **Step 1** — SGT detected, biometric-signed `register_verification` writes a `VerificationRecord` PDA. UBI claims now open. | **Step 2** — `YOUR EPOCH SHARE` hero shows the wallet's claimable cut of the UbiPool (0.002 SKR of a 6.005 SKR pool, 1 verified human). Open market `Will BTC > $100k by EOD?` is live with YES/NO pools. | **Step 3** — Bet placed (0.098 SKR on YES) → market settled YES → trophy chip shows the 0.0980 SKR win, auto-credited at next epoch. |
 
-📹 [Slideshow demo (15 s, mp4)](media/demo.mp4) · 📦 Signed APK v0.1.0 (attach to a GitHub Release; not committed — `*.apk` is gitignored) · 📚 [`@piedpiper/sdk`](packages/sdk/) — donate to UBI from any Solana app
+📹 [Slideshow demo (15 s, mp4)](media/demo.mp4) · 📦 [**Download signed APK v0.1.0 (69 MB)**](https://github.com/pedro-pelicioni/robinhoodie/releases/download/v0.1.0/robinhoodie-v0.1.0.apk) — install on a Seeker with `adb install -r robinhoodie-v0.1.0.apk` · 📚 [`@piedpiper/sdk`](packages/sdk/) — donate to UBI from any Solana app
 
 ## End-to-end on devnet (real Seeker, this submission)
 
@@ -165,7 +165,7 @@ cd app/piedpiper-app/android && ./gradlew assembleRelease
 
 ## Submission artifacts
 
-- 📦 **Signed release APK** (`dist/piedpiper-v0.1.0.apk`, 65 MB; attached to the GitHub Release tagged `v0.1.0-hackathon`) — installs on any Seeker via `adb install -r`.
+- 📦 **Signed release APK** ([`robinhoodie-v0.1.0.apk`](https://github.com/pedro-pelicioni/robinhoodie/releases/download/v0.1.0/robinhoodie-v0.1.0.apk), 69 MB; attached to the GitHub Release tagged `v0.1.0`) — installs on any Seeker via `adb install -r robinhoodie-v0.1.0.apk`.
 - 📹 **Demo slideshow** ([`media/demo.mp4`](media/demo.mp4), 15 s) + 3 captioned screenshots in [`media/`](media/).
 - 🔗 **Live devnet program** at [`6YCUM…PH9K`](https://explorer.solana.com/address/6YCUM1AXP5JHFu17Lmjb7sX1zaXa4qtcHbZXyzecPH9K?cluster=devnet) with the four end-to-end txs above.
 - 🧪 **6/6 Anchor TS tests passing** on local validator (`anchor test`, ~72 s incl. 65 s epoch wait).
